@@ -1,0 +1,10 @@
+{
+  "metadata": {
+    "display_name": "LocalAction 本地快捷指令"
+  },
+  "pages": {
+    "window-picker": {
+      "title": "窗口选择器"
+    }
+  }
+}

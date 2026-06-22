@@ -1,0 +1,1091 @@
+{
+  "__localaction_plugin_ui_notice": {
+    "type": "object",
+    "description": "更多设置请进入插件UI界面查看",
+    "hint": "请在插件页面中打开 LocalAction 独立 UI 查看和编辑完整规则。",
+    "obvious_hint": true,
+    "items": {}
+  },
+  "quickaction": {
+    "type": "object",
+    "description": "启用 QuickAction",
+    "items": {
+      "enabled": {
+        "type": "bool",
+        "default": true,
+        "description": "启用"
+      },
+      "admin_only": {
+        "type": "bool",
+        "default": true,
+        "description": "仅管理员可用",
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true
+      },
+      "notice_template": {
+        "type": "string",
+        "default": "已由本地插件 LocalAction 执行动作：{action_name}，未调用大模型。",
+        "description": "执行成功返回提示",
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true
+      },
+      "confirm": {
+        "type": "object",
+        "description": "二次确认（兼容字段）",
+        "hint": "运行时兼容字段；请在插件页面的 QuickAction 设置中编辑。",
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true,
+        "items": {
+          "enabled": {
+            "type": "bool",
+            "default": false,
+            "description": "启用二次确认",
+            "invisible": true
+          },
+          "confirm_text": {
+            "type": "string",
+            "default": "确认",
+            "description": "确认语",
+            "invisible": true
+          },
+          "timeout_seconds": {
+            "type": "int",
+            "default": 30,
+            "description": "确认超时秒数",
+            "invisible": true
+          }
+        }
+      },
+      "rules": {
+        "type": "template_list",
+        "default": [
+          {
+            "enabled": true,
+            "action_name": "屏幕截图",
+            "trigger_keywords": [
+              "屏幕截图"
+            ],
+            "match_mode": "contains",
+            "__allow_rule_confirm": false,
+            "__allow_rule_channel_scope": false,
+            "use_channel_scope": false,
+            "channel_scope": {
+              "mode": "global",
+              "include_channels": [],
+              "exclude_channels": [],
+              "platform_names": []
+            },
+            "action": {
+              "type": "screenshot_fullscreen"
+            },
+            "__template_key": "rule"
+          }
+        ],
+        "description": "QuickAction 规则列表",
+        "condition": {
+          "enabled": true
+        },
+        "templates": {
+          "rule": {
+            "name": "规则",
+            "description": "QuickAction 规则列表",
+            "hide_hint_in_list": true,
+            "display_item": "action_name",
+            "items": {
+              "action_name": {
+                "type": "string",
+                "default": "",
+                "description": "动作名称"
+              },
+              "enabled": {
+                "type": "bool",
+                "default": true,
+                "description": "启用状态"
+              },
+              "trigger_keywords": {
+                "type": "list",
+                "item_type": "string",
+                "default": [],
+                "description": "触发关键词"
+              },
+              "match_mode": {
+                "type": "string",
+                "default": "contains",
+                "description": "匹配模式",
+                "options": [
+                  "contains",
+                  "exact",
+                  "prefix",
+                  "regex"
+                ],
+                "labels": [
+                  "包含",
+                  "完全匹配",
+                  "前缀匹配",
+                  "正则"
+                ]
+              },
+              "use_channel_scope": {
+                "type": "bool",
+                "default": false,
+                "description": "单独渠道范围",
+                "hint": "关闭时使用 QuickAction 渠道范围；开启后可为当前规则单独设置渠道范围。",
+                "condition": {
+                  "__allow_rule_channel_scope": true
+                },
+                "invisible": true
+              },
+              "channel_scope": {
+                "type": "object",
+                "description": "渠道范围",
+                "condition": {
+                  "__allow_rule_channel_scope": true,
+                  "use_channel_scope": true
+                },
+                "invisible": true,
+                "items": {
+                  "mode": {
+                    "type": "string",
+                    "default": "global",
+                    "description": "范围模式",
+                    "options": [
+                      "global",
+                      "include",
+                      "exclude",
+                      "custom"
+                    ],
+                    "labels": [
+                      "全局",
+                      "包含",
+                      "排除",
+                      "自定义平台名"
+                    ]
+                  },
+                  "include_channels": {
+                    "type": "list",
+                    "item_type": "string",
+                    "default": [],
+                    "description": "包含渠道类型列表",
+                    "options": [
+                      "qq",
+                      "web",
+                      "client",
+                      "other"
+                    ],
+                    "condition": {
+                      "channel_scope.mode": "include"
+                    },
+                    "labels": [
+                      "QQ",
+                      "网页",
+                      "客户端",
+                      "其他"
+                    ]
+                  },
+                  "exclude_channels": {
+                    "type": "list",
+                    "item_type": "string",
+                    "default": [],
+                    "description": "排除渠道类型列表",
+                    "options": [
+                      "qq",
+                      "web",
+                      "client",
+                      "other"
+                    ],
+                    "condition": {
+                      "channel_scope.mode": "exclude"
+                    },
+                    "labels": [
+                      "QQ",
+                      "网页",
+                      "客户端",
+                      "其他"
+                    ]
+                  },
+                  "platform_names": {
+                    "type": "list",
+                    "item_type": "string",
+                    "default": [],
+                    "description": "自定义平台名列表",
+                    "condition": {
+                      "channel_scope.mode": "custom"
+                    }
+                  }
+                }
+              },
+              "action": {
+                "type": "object",
+                "description": "Action",
+                "items": {
+                  "type": {
+                    "type": "string",
+                    "default": "screenshot_fullscreen",
+                    "description": "动作类型",
+                    "options": [
+                      "screenshot_fullscreen",
+                      "screenshot_window",
+                      "list_windows",
+                      "read_file",
+                      "tail_file",
+                      "send_file",
+                      "close_process"
+                    ],
+                    "labels": [
+                      "全屏截图",
+                      "指定窗口截图",
+                      "列出窗口",
+                      "读取文件",
+                      "读取文件尾部",
+                      "发送文件",
+                      "关闭匹配窗口进程"
+                    ]
+                  },
+                  "selector": {
+                    "type": "object",
+                    "default": {},
+                    "items": {},
+                    "description": "窗口选择器",
+                    "hint": "用于 screenshot_window、list_windows、close_process，例如 foreground=true 或 process=Code.exe"
+                  },
+                  "path": {
+                    "type": "string",
+                    "default": "",
+                    "description": "文件路径",
+                    "hint": "用于 read_file、tail_file、send_file；allowed_paths 留空时白名单不生效，填写后路径必须位于白名单内"
+                  },
+                  "lines": {
+                    "type": "int",
+                    "default": 100,
+                    "description": "读取行数",
+                    "hint": "用于 tail_file，读取文件最后多少行",
+                    "condition": {
+                      "action.type": "tail_file"
+                    }
+                  },
+                  "limit": {
+                    "type": "int",
+                    "default": 20,
+                    "description": "窗口数量上限",
+                    "hint": "用于 list_windows。",
+                    "condition": {
+                      "action.type": "list_windows"
+                    }
+                  },
+                  "force": {
+                    "type": "bool",
+                    "default": true,
+                    "description": "强制关闭",
+                    "hint": "用于 close_process，等价于 taskkill /F。",
+                    "condition": {
+                      "action.type": "close_process"
+                    }
+                  },
+                  "include_children": {
+                    "type": "bool",
+                    "default": true,
+                    "description": "包含子进程",
+                    "hint": "用于 close_process，等价于 taskkill /T。",
+                    "condition": {
+                      "action.type": "close_process"
+                    }
+                  }
+                }
+              },
+              "confirm": {
+                "type": "object",
+                "description": "规则级二次确认",
+                "condition": {
+                  "__allow_rule_confirm": true
+                },
+                "invisible": true,
+                "items": {
+                  "enabled": {
+                    "type": "bool",
+                    "default": false,
+                    "description": "启用二次确认",
+                    "invisible": true
+                  },
+                  "confirm_text": {
+                    "type": "string",
+                    "default": "确认",
+                    "description": "确认语",
+                    "invisible": true
+                  },
+                  "timeout_seconds": {
+                    "type": "int",
+                    "default": 30,
+                    "description": "确认超时秒数",
+                    "invisible": true
+                  }
+                }
+              },
+              "__allow_rule_confirm": {
+                "type": "bool",
+                "default": false,
+                "description": "允许规则级二次确认",
+                "invisible": true
+              },
+              "__allow_rule_channel_scope": {
+                "type": "bool",
+                "default": false,
+                "description": "允许单独渠道范围",
+                "invisible": true
+              }
+            }
+          }
+        }
+      },
+      "channel_scope": {
+        "type": "object",
+        "description": "QuickAction 渠道范围",
+        "invisible": true,
+        "items": {
+          "mode": {
+            "type": "string",
+            "default": "global",
+            "description": "范围模式",
+            "options": [
+              "global",
+              "include",
+              "exclude",
+              "custom"
+            ],
+            "labels": [
+              "全局",
+              "包含",
+              "排除",
+              "自定义平台名"
+            ]
+          },
+          "include_channels": {
+            "type": "list",
+            "item_type": "string",
+            "default": [],
+            "description": "包含渠道类型列表",
+            "options": [
+              "qq",
+              "web",
+              "client",
+              "other"
+            ],
+            "condition": {
+              "mode": "include"
+            },
+            "labels": [
+              "QQ",
+              "网页",
+              "客户端",
+              "其他"
+            ]
+          },
+          "exclude_channels": {
+            "type": "list",
+            "item_type": "string",
+            "default": [],
+            "description": "排除渠道类型列表",
+            "options": [
+              "qq",
+              "web",
+              "client",
+              "other"
+            ],
+            "condition": {
+              "mode": "exclude"
+            },
+            "labels": [
+              "QQ",
+              "网页",
+              "客户端",
+              "其他"
+            ]
+          },
+          "platform_names": {
+            "type": "list",
+            "item_type": "string",
+            "default": [],
+            "description": "自定义平台名列表",
+            "condition": {
+              "mode": "custom"
+            }
+          }
+        },
+        "condition": {
+          "enabled": true
+        }
+      },
+      "allowed_paths": {
+        "type": "list",
+        "item_type": "string",
+        "default": [],
+        "description": "文件动作白名单路径",
+        "hint": "留空时白名单不生效；填写后文件动作的 path 必须位于白名单内",
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true
+      }
+    }
+  },
+  "quickcommand": {
+    "type": "object",
+    "description": "启用 QuickCommand",
+    "hint": "执行自定义指令",
+    "items": {
+      "enabled": {
+        "type": "bool",
+        "default": true,
+        "description": "启用"
+      },
+      "admin_only": {
+        "type": "bool",
+        "default": true,
+        "description": "仅管理员可用",
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true
+      },
+      "notice_template": {
+        "type": "string",
+        "default": "已由本地插件 LocalAction 执行命令：{command_name}，未调用大模型。",
+        "description": "执行成功返回提示",
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true
+      },
+      "confirm": {
+        "type": "object",
+        "description": "二次确认（兼容字段）",
+        "hint": "运行时兼容字段；请在插件页面的 QuickCommand 设置中编辑。",
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true,
+        "items": {
+          "enabled": {
+            "type": "bool",
+            "default": true,
+            "description": "启用二次确认",
+            "invisible": true
+          },
+          "confirm_text": {
+            "type": "string",
+            "default": "确认",
+            "description": "确认语",
+            "invisible": true
+          },
+          "timeout_seconds": {
+            "type": "int",
+            "default": 30,
+            "description": "确认超时秒数",
+            "invisible": true
+          }
+        }
+      },
+      "commands": {
+        "type": "object",
+        "description": "预定义命令（兼容字段）",
+        "hint": "运行时兼容旧配置；请在插件页面的 QuickCommand 规则中编辑执行命令。",
+        "default": {},
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true,
+        "items": {}
+      },
+      "rules": {
+        "type": "template_list",
+        "default": [],
+        "description": "QuickCommand 规则列表",
+        "condition": {
+          "enabled": true
+        },
+        "templates": {
+          "rule": {
+            "name": "规则",
+            "description": "QuickCommand 规则列表",
+            "hide_hint_in_list": true,
+            "display_item": "command_name",
+            "items": {
+              "command_name": {
+                "type": "string",
+                "default": "",
+                "description": "命令名称"
+              },
+              "enabled": {
+                "type": "bool",
+                "default": true,
+                "description": "启用状态"
+              },
+              "trigger_keywords": {
+                "type": "list",
+                "item_type": "string",
+                "default": [],
+                "description": "触发关键词"
+              },
+              "match_mode": {
+                "type": "string",
+                "default": "contains",
+                "description": "匹配模式",
+                "options": [
+                  "contains",
+                  "exact",
+                  "prefix",
+                  "regex"
+                ],
+                "labels": [
+                  "包含",
+                  "完全匹配",
+                  "前缀匹配",
+                  "正则"
+                ]
+              },
+              "use_channel_scope": {
+                "type": "bool",
+                "default": false,
+                "description": "单独渠道范围",
+                "hint": "关闭时使用 QuickCommand 渠道范围；开启后可为当前规则单独设置渠道范围。",
+                "condition": {
+                  "__allow_rule_channel_scope": true
+                },
+                "invisible": true
+              },
+              "channel_scope": {
+                "type": "object",
+                "description": "渠道范围",
+                "condition": {
+                  "__allow_rule_channel_scope": true,
+                  "use_channel_scope": true
+                },
+                "invisible": true,
+                "items": {
+                  "mode": {
+                    "type": "string",
+                    "default": "include",
+                    "description": "范围模式",
+                    "options": [
+                      "global",
+                      "include",
+                      "exclude",
+                      "custom"
+                    ],
+                    "labels": [
+                      "全局",
+                      "包含",
+                      "排除",
+                      "自定义平台名"
+                    ]
+                  },
+                  "include_channels": {
+                    "type": "list",
+                    "item_type": "string",
+                    "default": [],
+                    "description": "包含渠道类型列表",
+                    "options": [
+                      "qq",
+                      "web",
+                      "client",
+                      "other"
+                    ],
+                    "condition": {
+                      "channel_scope.mode": "include"
+                    },
+                    "labels": [
+                      "QQ",
+                      "网页",
+                      "客户端",
+                      "其他"
+                    ]
+                  },
+                  "exclude_channels": {
+                    "type": "list",
+                    "item_type": "string",
+                    "default": [],
+                    "description": "排除渠道类型列表",
+                    "options": [
+                      "qq",
+                      "web",
+                      "client",
+                      "other"
+                    ],
+                    "condition": {
+                      "channel_scope.mode": "exclude"
+                    },
+                    "labels": [
+                      "QQ",
+                      "网页",
+                      "客户端",
+                      "其他"
+                    ]
+                  },
+                  "platform_names": {
+                    "type": "list",
+                    "item_type": "string",
+                    "default": [],
+                    "description": "自定义平台名列表",
+                    "condition": {
+                      "channel_scope.mode": "custom"
+                    }
+                  }
+                }
+              },
+              "confirm": {
+                "type": "object",
+                "description": "规则级二次确认",
+                "condition": {
+                  "__allow_rule_confirm": true
+                },
+                "invisible": true,
+                "items": {
+                  "enabled": {
+                    "type": "bool",
+                    "default": false,
+                    "description": "启用二次确认",
+                    "invisible": true
+                  },
+                  "confirm_text": {
+                    "type": "string",
+                    "default": "确认",
+                    "description": "确认语",
+                    "invisible": true
+                  },
+                  "timeout_seconds": {
+                    "type": "int",
+                    "default": 30,
+                    "description": "确认超时秒数",
+                    "invisible": true
+                  }
+                }
+              },
+              "__allow_rule_confirm": {
+                "type": "bool",
+                "default": false,
+                "description": "允许规则级二次确认",
+                "invisible": true
+              },
+              "__allow_rule_channel_scope": {
+                "type": "bool",
+                "default": false,
+                "description": "允许单独渠道范围",
+                "invisible": true
+              },
+              "action": {
+                "type": "object",
+                "description": "Action",
+                "items": {
+                  "type": {
+                    "type": "string",
+                    "default": "run_command",
+                    "description": "动作类型",
+                    "options": [
+                      "run_command"
+                    ],
+                    "labels": [
+                      "执行命令"
+                    ]
+                  },
+                  "shell": {
+                    "type": "string",
+                    "default": "pwsh",
+                    "description": "Shell",
+                    "hint": "本地可用执行器，例如 pwsh、powershell、cmd、bash、sh、wsl"
+                  },
+                  "command": {
+                    "type": "text",
+                    "default": "",
+                    "description": "执行命令",
+                    "hint": "要执行的固定本地命令，不要拼接用户输入。",
+                    "invisible": true
+                  },
+                  "timeout": {
+                    "type": "int",
+                    "default": 10,
+                    "description": "超时秒数",
+                    "hint": "命令执行超过该秒数会被终止。"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "sync_with_quickaction_channel_scope": {
+        "type": "bool",
+        "default": true,
+        "description": "与 QuickAction 渠道范围保持一致",
+        "hint": "开启后 QuickAction 渠道范围变更会同步应用到 QuickCommand，并隐藏 QuickCommand 渠道范围设置。",
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true
+      },
+      "channel_scope": {
+        "type": "object",
+        "description": "QuickCommand 渠道范围",
+        "condition": {
+          "enabled": true,
+          "sync_with_quickaction_channel_scope": false
+        },
+        "invisible": true,
+        "items": {
+          "mode": {
+            "type": "string",
+            "default": "include",
+            "description": "范围模式",
+            "options": [
+              "global",
+              "include",
+              "exclude",
+              "custom"
+            ],
+            "labels": [
+              "全局",
+              "包含",
+              "排除",
+              "自定义平台名"
+            ]
+          },
+          "include_channels": {
+            "type": "list",
+            "item_type": "string",
+            "default": [],
+            "description": "包含渠道类型列表",
+            "options": [
+              "qq",
+              "web",
+              "client",
+              "other"
+            ],
+            "condition": {
+              "mode": "include"
+            },
+            "labels": [
+              "QQ",
+              "网页",
+              "客户端",
+              "其他"
+            ]
+          },
+          "exclude_channels": {
+            "type": "list",
+            "item_type": "string",
+            "default": [],
+            "description": "排除渠道类型列表",
+            "options": [
+              "qq",
+              "web",
+              "client",
+              "other"
+            ],
+            "condition": {
+              "mode": "exclude"
+            },
+            "labels": [
+              "QQ",
+              "网页",
+              "客户端",
+              "其他"
+            ]
+          },
+          "platform_names": {
+            "type": "list",
+            "item_type": "string",
+            "default": [],
+            "description": "自定义平台名列表",
+            "condition": {
+              "mode": "custom"
+            }
+          }
+        }
+      },
+      "ssh_mode": {
+        "type": "object",
+        "description": "Shell 会话模式（兼容字段）",
+        "hint": "运行时兼容字段；请在插件页面的 QuickCommand 设置中编辑。",
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true,
+        "items": {
+          "enabled": {
+            "type": "bool",
+            "default": false,
+            "description": "启用 Shell 会话模式"
+          },
+          "trigger_keywords": {
+            "type": "list",
+            "item_type": "string",
+            "default": [
+              "ssh"
+            ],
+            "description": "触发关键词"
+          },
+          "exit_keywords": {
+            "type": "list",
+            "item_type": "string",
+            "default": [
+              "exit",
+              "退出"
+            ],
+            "description": "退出关键词"
+          },
+          "match_mode": {
+            "type": "string",
+            "default": "exact",
+            "description": "匹配模式",
+            "options": [
+              "contains",
+              "exact",
+              "prefix",
+              "regex"
+            ],
+            "labels": [
+              "包含",
+              "完全匹配",
+              "前缀匹配",
+              "正则"
+            ]
+          },
+          "shell": {
+            "type": "string",
+            "default": "pwsh",
+            "description": "Shell"
+          },
+          "timeout": {
+            "type": "int",
+            "default": 1000,
+            "description": "超时秒数"
+          }
+        }
+      }
+    }
+  },
+  "advanced_settings_enabled": {
+    "type": "bool",
+    "default": false,
+    "description": "启用高级设置（兼容字段）",
+    "hint": "运行时兼容字段；旧设置请使用“显示/启用高级设置 > 启用”，关闭后文件大小限制、文件路径白名单和休眠/唤醒控制都不生效。",
+    "invisible": true
+  },
+  "max_file_size_mb": {
+    "type": "string",
+    "default": "50",
+    "description": "文件大小上限（兼容字段）",
+    "hint": "运行时兼容字段；旧设置请使用“显示/启用高级设置 > 文件大小上限（MB）”。",
+    "invisible": true
+  },
+  "quickaction_rule_confirm_enabled": {
+    "type": "bool",
+    "default": false,
+    "description": "QuickAction 规则独立二次确认（本版未开放）",
+    "hint": "兼容保留字段。本版本不支持为单条 QuickAction 规则单独开启二次确认，运行时会固定为关闭。",
+    "invisible": true
+  },
+  "quickaction_rule_channel_scope_enabled": {
+    "type": "bool",
+    "default": false,
+    "description": "QuickAction 规则独立渠道范围（本版未开放）",
+    "hint": "兼容保留字段。本版本不支持为单条 QuickAction 规则单独配置渠道范围，运行时会固定为关闭。",
+    "invisible": true
+  },
+  "quickcommand_rule_confirm_enabled": {
+    "type": "bool",
+    "default": false,
+    "description": "QuickCommand 规则独立二次确认（本版未开放）",
+    "hint": "兼容保留字段。本版本不支持为单条 QuickCommand 规则单独开启二次确认，运行时会固定为关闭。",
+    "invisible": true
+  },
+  "quickcommand_rule_channel_scope_enabled": {
+    "type": "bool",
+    "default": false,
+    "description": "QuickCommand 规则独立渠道范围（本版未开放）",
+    "hint": "兼容保留字段。本版本不支持为单条 QuickCommand 规则单独配置渠道范围，运行时会固定为关闭。",
+    "invisible": true
+  },
+  "sleep_wake": {
+    "type": "object",
+    "description": "休眠/唤醒运行时配置（兼容字段）",
+    "hint": "运行时兼容字段；旧设置请使用“显示/启用高级设置 > Sleep / Wake 控制配置”。",
+    "invisible": true,
+    "items": {}
+  },
+  "advanced_settings": {
+    "type": "object",
+    "description": "显示/启用高级设置",
+    "items": {
+      "enabled": {
+        "type": "bool",
+        "default": false,
+        "description": "启用"
+      },
+      "max_file_size_mb": {
+        "type": "string",
+        "default": "50",
+        "description": "文件大小上限（MB）",
+        "hint": "仅在启用高级设置后生效，用于限制 read_file、tail_file、send_file 读取或发送的文件大小；旧设置请填数字，负数表示不限制，0 表示禁止文件动作。",
+        "condition": {
+          "enabled": true
+        }
+      },
+      "quickaction_rule_confirm_enabled": {
+        "type": "bool",
+        "default": false,
+        "description": "允许 QuickAction 规则独立二次确认",
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true
+      },
+      "quickaction_rule_channel_scope_enabled": {
+        "type": "bool",
+        "default": false,
+        "description": "允许 QuickAction 规则单独渠道范围",
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true
+      },
+      "quickcommand_rule_confirm_enabled": {
+        "type": "bool",
+        "default": false,
+        "description": "允许 QuickCommand 规则独立二次确认",
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true
+      },
+      "quickcommand_rule_channel_scope_enabled": {
+        "type": "bool",
+        "default": false,
+        "description": "允许 QuickCommand 规则单独渠道范围",
+        "condition": {
+          "enabled": true
+        },
+        "invisible": true
+      },
+      "sleep_wake": {
+        "type": "object",
+        "description": "Sleep / Wake 控制配置",
+        "condition": {
+          "enabled": true
+        },
+        "items": {
+          "enabled": {
+            "type": "bool",
+            "default": true,
+            "description": "启用休眠/唤醒控制"
+          },
+          "sleep_match_mode": {
+            "type": "string",
+            "default": "exact",
+            "description": "休眠关键词匹配模式",
+            "options": [
+              "contains",
+              "exact",
+              "prefix",
+              "regex"
+            ],
+            "labels": [
+              "包含",
+              "完全匹配",
+              "前缀匹配",
+              "正则"
+            ],
+            "invisible": true
+          },
+          "sleep_keywords": {
+            "type": "list",
+            "item_type": "string",
+            "default": [
+              "休眠"
+            ],
+            "description": "临时休眠关键词"
+          },
+          "permanent_sleep_keywords": {
+            "type": "list",
+            "item_type": "string",
+            "default": [
+              "永久休眠"
+            ],
+            "description": "永久休眠关键词"
+          },
+          "wake_keywords": {
+            "type": "list",
+            "item_type": "string",
+            "default": [
+              "唤醒"
+            ],
+            "description": "唤醒关键词"
+          },
+          "wake_all_keywords": {
+            "type": "list",
+            "item_type": "string",
+            "default": [
+              "全部唤醒",
+              "唤醒全部"
+            ],
+            "description": "全部唤醒关键词",
+            "invisible": true
+          },
+          "status_keywords": {
+            "type": "list",
+            "item_type": "string",
+            "default": [
+              "休眠状态"
+            ],
+            "description": "状态查询关键词"
+          },
+          "default_sleep_seconds": {
+            "type": "int",
+            "default": 3600,
+            "description": "默认休眠秒数"
+          },
+          "persist_sleep_state": {
+            "type": "bool",
+            "default": true,
+            "description": "持久化休眠状态",
+            "invisible": true
+          },
+          "allow_global_sleep": {
+            "type": "bool",
+            "default": true,
+            "description": "允许全局休眠",
+            "invisible": true
+          },
+          "allow_mode_sleep": {
+            "type": "bool",
+            "default": false,
+            "description": "允许模式休眠",
+            "invisible": true
+          },
+          "allow_rule_sleep": {
+            "type": "bool",
+            "default": false,
+            "description": "允许规则休眠",
+            "invisible": true
+          },
+          "admin_only": {
+            "type": "bool",
+            "default": true,
+            "description": "仅管理员可控制休眠/唤醒"
+          },
+          "notice": {
+            "type": "object",
+            "description": "休眠/唤醒提示文案（兼容字段）",
+            "hint": "运行时使用的提示模板，当前版本不在旧设置中编辑。",
+            "invisible": true,
+            "items": {}
+          }
+        }
+      }
+    }
+  }
+}

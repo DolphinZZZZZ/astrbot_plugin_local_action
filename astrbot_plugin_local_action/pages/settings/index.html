@@ -1,0 +1,3751 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LocalAction Settings</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --panel-muted: #f0f3f6;
+      --text: #1f2933;
+      --muted: #687482;
+      --border: #d7dee6;
+      --primary: #246bfe;
+      --primary-soft: #e9f0ff;
+      --danger: #c53232;
+      --ok: #138a4d;
+      --shadow: 0 8px 24px rgba(31, 41, 51, .08);
+    }
+    html[data-theme="dark"], html.dark {
+      --bg: #12161d;
+      --panel: #1b212b;
+      --panel-muted: #252d39;
+      --text: #edf2f7;
+      --muted: #a5b1c2;
+      --border: #344052;
+      --primary: #76a7ff;
+      --primary-soft: #1f335b;
+      --danger: #ff7b7b;
+      --ok: #5bd391;
+      --shadow: none;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select, textarea {
+      font: inherit;
+    }
+    button {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 7px 10px;
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--primary); }
+    button.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+    button.danger {
+      color: var(--danger);
+    }
+    button.delete-confirm {
+      width: 64px;
+      height: 34px;
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #fff;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      animation: slideInFromRight .16s ease-out;
+    }
+    .delete-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+    @keyframes slideInFromRight {
+      from { transform: translateX(12px); opacity: .72; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .rule.deleting {
+      pointer-events: none;
+      animation: ruleDeleteSlideOut .16s cubic-bezier(.55, 0, 1, .45) forwards;
+    }
+    .rule.deleting .rule-surface {
+      transition: none;
+    }
+    @keyframes ruleDeleteSlideOut {
+      from { transform: translate3d(0, 0, 0); opacity: 1; }
+      to { transform: translate3d(-110%, 0, 0); opacity: 0; }
+    }
+    button.icon {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 8px 9px;
+      outline: none;
+    }
+    textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 22%, transparent);
+    }
+    .size-limit-control {
+      display: grid;
+      grid-template-columns: minmax(80px, 120px) 82px;
+      gap: 8px;
+      max-width: 220px;
+    }
+    .path-picker-control {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+    }
+    .path-picker-control button {
+      min-height: 36px;
+      white-space: nowrap;
+    }
+    .app {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .heading {
+      display: block;
+      align-items: center;
+      min-width: 0;
+    }
+    .heading-text {
+      min-width: 0;
+    }
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0;
+    }
+    .subtitle {
+      color: var(--muted);
+      margin-top: 3px;
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .tabs {
+      display: inline-grid;
+      grid-template-columns: repeat(3, minmax(120px, 1fr));
+      gap: 4px;
+      background: var(--panel-muted);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+    .tab {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .tab.active {
+      background: var(--panel);
+      color: var(--text);
+      box-shadow: var(--shadow);
+    }
+    .modebar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .mode-state {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+    }
+    .switch {
+      position: relative;
+      width: 42px;
+      height: 24px;
+      flex: 0 0 auto;
+    }
+    .switch input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: #9099a6;
+      transition: .15s;
+    }
+    .slider:before {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      top: 3px;
+      border-radius: 999px;
+      background: #fff;
+      transition: .15s;
+    }
+    .switch input:checked + .slider {
+      background: var(--ok);
+    }
+    .switch input:checked + .slider:before {
+      transform: translateX(18px);
+    }
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+    #rules {
+      position: relative;
+    }
+    .advanced-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .advanced-section {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 12px;
+    }
+    .mode-settings {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .advanced-title {
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .rule {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      opacity: .62;
+      position: relative;
+      transition: transform .22s cubic-bezier(.2, .8, .2, 1);
+      will-change: transform;
+    }
+    .rule.enabled {
+      opacity: 1;
+      border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+    }
+    .rule-surface {
+      position: relative;
+      z-index: 2;
+      background: var(--panel);
+      border-radius: inherit;
+      transition: transform .22s cubic-bezier(.2, .8, .2, 1);
+      will-change: transform;
+    }
+    .rule-restore-hint {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 0;
+      background: color-mix(in srgb, var(--panel-muted) 82%, transparent);
+      opacity: 0;
+      transition: opacity .14s ease, color .14s ease, background .14s ease;
+      pointer-events: none;
+    }
+    .rule.swipe-left .rule-restore-hint {
+      justify-content: flex-end;
+    }
+    .rule.swipe-right .rule-restore-hint {
+      justify-content: flex-start;
+    }
+    .rule.horizontal-dragging .rule-restore-hint {
+      opacity: 1;
+    }
+    .rule.restore-active .rule-restore-hint {
+      color: #fff;
+      background: color-mix(in srgb, var(--primary) 82%, var(--panel));
+    }
+    .rule.dragging {
+      z-index: 30;
+      box-shadow: 0 18px 42px rgba(31, 41, 51, .2);
+    }
+    .rule.dragging,
+    .rule.dragging button {
+      cursor: grabbing;
+    }
+    .rule.dragging,
+    .rule.dragging .rule-surface {
+      transition: none;
+    }
+    .rule-drag-placeholder {
+      box-sizing: border-box;
+      min-height: 42px;
+      border: 2px dashed color-mix(in srgb, var(--primary) 62%, var(--border));
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--primary) 8%, var(--panel));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 16%, transparent);
+      transition: border-color .14s ease, background .14s ease;
+    }
+    .rule.rule-moving {
+      z-index: 20;
+    }
+    .rule-move-indicator {
+      --indicator-enter: 8px;
+      --indicator-exit: -8px;
+      position: absolute;
+      left: -32px;
+      color: var(--primary);
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1;
+      pointer-events: none;
+      z-index: 50;
+      animation: ruleMoveIndicatorFade .9s ease forwards;
+    }
+    .rule-move-indicator.down {
+      --indicator-enter: -8px;
+      --indicator-exit: 8px;
+    }
+    .rule-move-indicator.add {
+      --indicator-enter: 8px;
+      --indicator-exit: -8px;
+    }
+    @keyframes ruleMoveIndicatorFade {
+      0% {
+        opacity: 0;
+        transform: translateY(calc(-50% + var(--indicator-enter))) scale(.92);
+      }
+      24%, 68% {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(calc(-50% + var(--indicator-exit))) scale(.96);
+      }
+    }
+    .move-up,
+    .move-down {
+      touch-action: none;
+      user-select: none;
+    }
+    .rule-head {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in srgb, var(--panel) 88%, var(--panel-muted));
+    }
+    .rule-title {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+    }
+    .rule-name {
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rule-meta {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      min-width: 0;
+    }
+    .rule-meta .missing-keywords {
+      color: var(--danger);
+      font-weight: 600;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 7px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      white-space: nowrap;
+    }
+    .rule-body {
+      display: none;
+      padding: 12px;
+    }
+    .rule.expanded .rule-body {
+      display: block;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .field {
+      display: grid;
+      gap: 5px;
+      align-content: start;
+    }
+    .field.full { grid-column: 1 / -1; }
+    .confirm-settings-row {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(150px, 220px) minmax(150px, 260px) minmax(120px, 150px);
+      gap: 12px;
+      align-items: start;
+    }
+    .confirm-settings-row .field {
+      min-width: 0;
+    }
+    .confirm-timeout input {
+      max-width: 150px;
+    }
+    .shell-session-settings {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .shell-session-toggle,
+    .shell-session-detail {
+      grid-column: 1 / -1;
+      min-width: 0;
+    }
+    .shell-session-details {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      min-width: 0;
+    }
+    .shell-session-details:empty {
+      display: none;
+    }
+    .channel-scope-field {
+      grid-column: 1 / -1;
+      display: grid;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--panel) 88%, var(--panel-muted));
+    }
+    .channel-scope-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-weight: 700;
+    }
+    .channel-scope-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+      min-height: 32px;
+    }
+    .channel-scope-actions.hidden {
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .channel-scope-actions button {
+      min-height: 32px;
+      padding: 5px 10px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .channel-scope-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 360px) minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+    .segmented-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 36px;
+    }
+    .segment-option {
+      min-height: 34px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: var(--panel);
+      font-weight: 700;
+    }
+    .segment-option.active {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+    .channel-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      min-height: 36px;
+    }
+    .channel-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 32px;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--panel);
+      font-weight: 600;
+    }
+    .channel-chip input {
+      width: auto;
+    }
+    .label-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 20px;
+    }
+    .selector-label-line {
+      min-height: 36px;
+      padding: 4px 0;
+    }
+    label {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .hint {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1;
+    }
+    .help {
+      border: 0;
+      background: transparent;
+      color: var(--primary);
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .type-wrap {
+      position: relative;
+    }
+    .type-wrap input {
+      padding-right: 43px;
+    }
+    .type-dropdown {
+      position: absolute;
+      top: 1px;
+      right: 1px;
+      bottom: 1px;
+      width: 36px;
+      padding: 0;
+      border: 0;
+      border-left: 1px solid var(--border);
+      border-radius: 0 5px 5px 0;
+      background: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .type-dropdown:hover {
+      background: var(--panel-muted);
+      border-color: var(--border);
+    }
+    .type-dropdown::before {
+      content: "";
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid currentColor;
+    }
+    .type-menu {
+      display: none;
+      position: absolute;
+      z-index: 20;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      max-height: 260px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .type-menu-portal {
+      position: fixed;
+      inset: auto auto auto auto;
+      z-index: 1000;
+      min-width: 180px;
+      max-height: min(260px, calc(100vh - 20px));
+    }
+    .type-menu.open { display: block; }
+    .type-option {
+      padding: 8px 10px;
+      cursor: pointer;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+    }
+    .type-option:hover {
+      background: var(--panel-muted);
+    }
+    .type-option strong {
+      display: block;
+    }
+    .type-option span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .keyword-editor {
+      display: grid;
+      gap: 8px;
+    }
+    .keyword-list {
+      display: grid;
+      gap: 6px;
+      align-content: start;
+    }
+    .keyword-list:empty {
+      display: none;
+    }
+    .keyword-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+      padding: 4px 4px 4px 9px;
+    }
+    .keyword-row.editing {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 16%, transparent);
+    }
+    .keyword-text {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .keyword-edit-input {
+      height: 28px;
+      border: 0;
+      background: transparent;
+      padding: 4px 0;
+    }
+    .keyword-edit-input:focus {
+      border-color: transparent;
+      box-shadow: none;
+    }
+    .keyword-actions {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .keyword-actions button {
+      height: 28px;
+      padding: 0 8px;
+    }
+    .keyword-input-wrap {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+      padding: 4px 4px 4px 9px;
+    }
+    .keyword-input-wrap:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 16%, transparent);
+    }
+    .keyword-input-wrap input {
+      min-width: 0;
+      height: 28px;
+      border: 0;
+      background: transparent;
+      padding: 4px 0;
+    }
+    .keyword-input-wrap input:focus {
+      border-color: transparent;
+      box-shadow: none;
+    }
+    .keyword-confirm {
+      height: 28px;
+      min-width: 54px;
+      padding: 0 10px;
+      border-color: var(--primary);
+      border-radius: 6px;
+      background: var(--primary);
+      color: #fff;
+    }
+    .keyword-confirm:hover {
+      border-left-color: var(--border);
+      background: color-mix(in srgb, var(--primary) 86%, #000);
+    }
+    .selector-editor {
+      display: grid;
+      gap: 10px;
+    }
+    .selector-picker-button {
+      height: 36px;
+      padding: 0 16px;
+      font-size: 14px;
+      margin-left: 4px;
+    }
+    .window-picker {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--panel) 86%, var(--panel-muted));
+      overflow: hidden;
+    }
+    .window-picker-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .window-picker-head input {
+      height: 34px;
+    }
+    .window-count,
+    .window-status {
+      min-height: 18px;
+      padding: 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .window-status {
+      margin-top: 6px;
+      padding-bottom: 10px;
+    }
+    .window-status.ok { color: var(--ok); }
+    .window-status.error { color: var(--danger); }
+    .window-list {
+      display: grid;
+      max-height: 280px;
+      overflow: auto;
+      border-top: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+    }
+    .window-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 8px;
+      border-top: 1px solid color-mix(in srgb, var(--border) 58%, transparent);
+    }
+    .window-row:first-child {
+      border-top: 0;
+    }
+    .window-row.selected {
+      background: color-mix(in srgb, var(--primary-soft) 72%, transparent);
+    }
+    .window-title {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .window-sub {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .window-row-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .window-row-actions button {
+      height: 30px;
+      padding: 0 8px;
+    }
+    .window-empty {
+      padding: 14px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .toast {
+      min-height: 22px;
+      color: var(--muted);
+    }
+    .toast.ok { color: var(--ok); }
+    .toast.error { color: var(--danger); }
+    .toast-state.off { color: #9099a6; }
+    .empty {
+      border: 1px dashed var(--border);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .modal-mask {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, .44);
+      padding: 24px;
+      overflow: auto;
+    }
+    .modal-mask.open {
+      display: grid;
+      place-items: start center;
+    }
+    .modal-mask.risk {
+      place-items: center;
+    }
+    .modal {
+      width: min(860px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-body {
+      padding: 14px;
+      max-height: 70vh;
+      overflow: auto;
+    }
+    .risk-modal {
+      width: min(720px, calc(100vw - 24px));
+    }
+    .risk-body {
+      display: grid;
+      gap: 12px;
+      color: var(--text);
+      line-height: 1.65;
+    }
+    .risk-body p {
+      margin: 0;
+    }
+    .risk-body ol,
+    .risk-body ul {
+      margin: 0;
+      padding-left: 22px;
+    }
+    .risk-actions {
+      display: flex;
+      justify-content: flex-end;
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+    }
+    .type-list {
+      display: grid;
+      gap: 10px;
+    }
+    .type-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--panel-muted);
+    }
+    .type-card h3 {
+      margin: 0 0 5px;
+      font-size: 14px;
+    }
+    @media (max-width: 760px) {
+      .app { padding: 12px; }
+      .topbar, .modebar { align-items: stretch; flex-direction: column; }
+      .heading { align-items: start; }
+      .actions { justify-content: stretch; }
+      .actions button { flex: 1 1 auto; }
+      .form-grid { grid-template-columns: 1fr; }
+      .confirm-settings-row,
+      .confirm-settings-row.disabled {
+        grid-template-columns: 1fr;
+      }
+      .confirm-timeout input {
+        max-width: none;
+      }
+      .channel-scope-grid {
+        grid-template-columns: 1fr;
+      }
+      .tabs { width: 100%; }
+      .rule-head { grid-template-columns: auto minmax(0, 1fr); }
+      .rule-tools { grid-column: 1 / -1; justify-self: end; }
+      .rule-move-indicator { left: 8px; }
+      .window-picker-head,
+      .window-row { grid-template-columns: 1fr; }
+      .window-row-actions { justify-self: start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="heading">
+        <div class="heading-text">
+          <h1 class="title">LocalAction 设置</h1>
+          <div class="subtitle">QuickAction / QuickCommand / 高级设置</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" id="refreshBtn">刷新</button>
+        <button type="button" id="typeHelpBtn">动作类型</button>
+        <button type="button" class="primary" id="saveBtn">保存</button>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="规则模式">
+      <button type="button" class="tab active" data-mode="quickaction">QuickAction</button>
+      <button type="button" class="tab" data-mode="quickcommand">QuickCommand</button>
+      <button type="button" class="tab" data-mode="advanced">高级设置</button>
+    </nav>
+
+    <section class="modebar" id="modebar">
+      <div class="mode-state">
+        <label class="switch" title="启用当前模式">
+          <input type="checkbox" id="modeEnabled">
+          <span class="slider"></span>
+        </label>
+        <span id="modeEnabledText"></span>
+      </div>
+      <button type="button" class="primary" id="addRuleBtn">新增 QuickAction</button>
+    </section>
+
+    <div id="toast" class="toast"></div>
+    <section class="mode-settings" id="modeSettings" hidden></section>
+    <main id="rules" class="grid"></main>
+    <main id="advancedPanel" class="advanced-grid" hidden></main>
+  </div>
+
+  <div id="typeModal" class="modal-mask" role="dialog" aria-modal="true" aria-labelledby="typeModalTitle">
+    <div class="modal">
+      <div class="modal-head">
+        <strong id="typeModalTitle">动作类型列表</strong>
+        <button type="button" class="icon" id="closeTypeModal" aria-label="关闭">x</button>
+      </div>
+      <div class="modal-body">
+        <div id="typeList" class="type-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="riskModal" class="modal-mask risk" role="dialog" aria-modal="true" aria-labelledby="riskModalTitle">
+    <div class="modal risk-modal">
+      <div class="modal-head">
+        <strong id="riskModalTitle">LocalAction 风险提示</strong>
+      </div>
+      <div class="modal-body risk-body">
+        <p>LocalAction 可以在命中规则后执行本地动作。配置不当可能导致隐私泄露、误触发本地操作、文件暴露或命令被错误执行。</p>
+        <ol>
+          <li>QuickAction 可能发送当前屏幕、指定窗口、文件内容或日志内容。</li>
+          <li>QuickCommand 可能执行本机命令。</li>
+          <li>触发关键词设置过宽，可能导致误拦截正常对话。</li>
+          <li>渠道范围设置过宽，群聊或非预期渠道也可能触发本地动作。</li>
+          <li>文件白名单配置不当，可能暴露敏感文件。</li>
+          <li>命令配置不当，可能影响本机程序或系统状态。</li>
+        </ol>
+        <p>建议仅管理员可用保持开启，危险动作启用二次确认，高风险规则使用 exact 匹配。</p>
+      </div>
+      <div class="risk-actions">
+        <button type="button" class="primary" id="ackRiskModal">我已了解</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/api/plugin/page/bridge-sdk.js"></script>
+  <script>
+    const STORE_KEY = "localaction:settings:expanded:v1";
+    const TYPE_DEFS = [
+      ["screenshot_fullscreen", "全屏截图", "截取当前屏幕，通常不需要额外参数"],
+      ["screenshot_window", "指定窗口截图", "按 selector 匹配窗口并截图，selector 可填 process、title_contains、class、pid、foreground"],
+      ["list_windows", "列出窗口", "按 selector 过滤窗口并返回列表"],
+      ["read_file", "读取文件", "读取 path 指向的文件全文，allowed_paths 留空时白名单不生效，填写后文件必须在白名单内"],
+      ["tail_file", "读取文件尾部", "读取 path 文件最后 lines 行，allowed_paths 留空时白名单不生效，填写后文件必须在白名单内"],
+      ["send_file", "发送文件", "发送 path 指向的文件，allowed_paths 留空时白名单不生效，填写后文件必须在白名单内"],
+      ["close_process", "关闭匹配窗口进程", "按 selector 找到窗口后关闭所属进程，force 对应强制关闭，include_children 包含子进程"],
+    ];
+    const TYPE_MAP = Object.fromEntries(TYPE_DEFS.map(([value, label, desc]) => [value, { label, desc }]));
+    const DEFAULT_NOTICE_TEMPLATES = {
+      quickaction: "已由本地插件 LocalAction 执行动作：{action_name}，未调用大模型。",
+      quickcommand: "已由本地插件 LocalAction 执行命令：{command_name}，未调用大模型。",
+    };
+    const CHANNEL_SCOPE_MODES = [
+      ["global", "全局"],
+      ["include", "包含"],
+      ["exclude", "排除"],
+      ["custom", "自定义平台名"],
+    ];
+    const FALLBACK_CHANNEL_SCOPE_CHANNELS = [
+      ["qq_official", "QQ 官方机器人(WebSocket)"],
+      ["qq_official_webhook", "QQ 官方机器人(Webhook)"],
+      ["aiocqhttp", "OneBot v11"],
+      ["weixin_official_account", "微信公众平台"],
+      ["wecom", "企业微信(含微信客服)"],
+      ["wecom_ai_bot", "企业微信智能机器人"],
+      ["weixin_oc", "个人微信"],
+      ["lark", "飞书(Lark)"],
+      ["dingtalk", "钉钉(DingTalk)"],
+      ["telegram", "Telegram"],
+      ["discord", "Discord"],
+      ["misskey", "Misskey"],
+      ["slack", "Slack"],
+      ["line", "Line"],
+      ["satori", "Satori"],
+      ["kook", "KOOK"],
+      ["mattermost", "Mattermost"],
+      ["webchat", "WebChat"],
+    ];
+    const AUTO_SAVE_DELAY_MS = 650;
+    const DRAG_HOLD_MS = 280;
+    const RESTORE_HINT_TEXT = "继续滑动以恢复原位";
+    const RESTORE_ACTIVE_TEXT = "松开恢复原位";
+    const RESTORE_THRESHOLD_EXTRA_PX = 32;
+    const RESTORE_THRESHOLD_MIN_PX = 96;
+    const RESTORE_THRESHOLD_MAX_RATIO = 0.75;
+    const RULE_MOVE_ANIMATION_MS = 220;
+    const RULE_MOVE_INDICATOR_MS = 900;
+    const RULE_DELETE_ANIMATION_MS = 160;
+    const RULE_DELETE_REFLOW_DELAY_MS = 80;
+    const state = {
+      mode: "quickaction",
+      config: null,
+      platformScope: null,
+      persistedRules: { quickaction: new WeakSet(), quickcommand: new WeakSet() },
+      expanded: loadExpanded(),
+      filterTimers: new Map(),
+      enabledSaveSeq: 0,
+      autoSaveTimers: {},
+      autoSaveSeqs: { quickaction: 0, quickcommand: 0, advanced: 0 },
+      autoSaveRunning: { quickaction: false, quickcommand: false, advanced: false },
+      autoSavePending: { quickaction: null, quickcommand: null, advanced: null },
+      pendingDeleteKey: "",
+      ruleDrag: null,
+      commitPendingInputs: new Set(),
+      channelScopeUndo: {},
+      availableShells: [],
+    };
+
+    const els = {
+      rules: document.getElementById("rules"),
+      toast: document.getElementById("toast"),
+      saveBtn: document.getElementById("saveBtn"),
+      refreshBtn: document.getElementById("refreshBtn"),
+      addRuleBtn: document.getElementById("addRuleBtn"),
+      modebar: document.getElementById("modebar"),
+      modeSettings: document.getElementById("modeSettings"),
+      modeEnabled: document.getElementById("modeEnabled"),
+      modeEnabledText: document.getElementById("modeEnabledText"),
+      advancedPanel: document.getElementById("advancedPanel"),
+      typeHelpBtn: document.getElementById("typeHelpBtn"),
+      typeModal: document.getElementById("typeModal"),
+      closeTypeModal: document.getElementById("closeTypeModal"),
+      typeList: document.getElementById("typeList"),
+      riskModal: document.getElementById("riskModal"),
+      ackRiskModal: document.getElementById("ackRiskModal"),
+    };
+
+    document.querySelectorAll(".tab").forEach((btn) => {
+      btn.addEventListener("click", () => setMode(btn.dataset.mode));
+    });
+    els.saveBtn.addEventListener("click", saveCurrentMode);
+    els.refreshBtn.addEventListener("click", loadConfig);
+    els.addRuleBtn.addEventListener("click", addRule);
+    els.modeEnabled.addEventListener("change", () => {
+      if (state.mode === "advanced") {
+        const advanced = advancedSettingsFromConfig();
+        const previousEnabled = Boolean(advanced.advanced_settings_enabled);
+        advanced.advanced_settings_enabled = els.modeEnabled.checked;
+        Object.assign(state.config, advanced);
+        render();
+        saveAdvancedEnabledState(() => {
+          state.config.advanced_settings_enabled = previousEnabled;
+          render();
+        }, els.modeEnabled.checked);
+        return;
+      }
+      const previousEnabled = Boolean(modeConfig().enabled);
+      modeConfig().enabled = els.modeEnabled.checked;
+      render();
+      saveEnabledStates(() => {
+        modeConfig().enabled = previousEnabled;
+        render();
+      }, els.modeEnabled.checked);
+    });
+    els.typeHelpBtn.addEventListener("click", openTypeModal);
+    els.closeTypeModal.addEventListener("click", closeTypeModal);
+    els.typeModal.addEventListener("click", (event) => {
+      if (event.target === els.typeModal) closeTypeModal();
+    });
+    els.ackRiskModal.addEventListener("click", acknowledgeRiskModal);
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (!target.closest(".type-wrap") && !target.closest(".type-menu")) closeAllTypeMenus();
+      if (state.pendingDeleteKey && !target.closest(".delete-rule")) {
+        clearPendingDelete();
+        render();
+      }
+    });
+
+    init();
+
+    async function init() {
+      renderTypeModal();
+      try {
+        if (window.AstrBotPluginPage) {
+          const context = await window.AstrBotPluginPage.ready();
+          document.documentElement.classList.toggle("dark", Boolean(context && context.isDark));
+        }
+        await loadConfig();
+      } catch (error) {
+        showToast(error.message || "页面初始化失败", "error");
+      }
+    }
+
+    async function loadConfig() {
+      showToast("正在加载配置...");
+      commitPendingInputs();
+      clearAutoSaveTimers();
+      clearPendingDelete();
+      const data = await apiGet("config");
+      state.config = data.config || {};
+      state.platformScope = data.platform_scope || null;
+      state.availableShells = Array.isArray(data.available_shells) ? data.available_shells : [];
+      applyInitialChannelScopeDefaults(data.initial_channel_scope);
+      markPersistedRules();
+      render();
+      showRiskModalIfNeeded(data);
+      showToast("配置已加载", "ok");
+    }
+
+    function showRiskModalIfNeeded(data) {
+      if (data && data.settings_risk_notice_acknowledged) return;
+      els.riskModal.classList.add("open");
+    }
+
+    async function acknowledgeRiskModal() {
+      try {
+        els.ackRiskModal.disabled = true;
+        await apiPost("settings/risk-ack", {});
+        els.riskModal.classList.remove("open");
+        showToast("已确认风险提示", "ok");
+      } catch (error) {
+        showToast(error.message || "确认风险提示失败", "error");
+      } finally {
+        els.ackRiskModal.disabled = false;
+      }
+    }
+
+    function setMode(mode) {
+      commitPendingInputs();
+      state.mode = mode;
+      clearPendingDelete();
+      document.querySelectorAll(".tab").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.mode === mode);
+      });
+      render();
+    }
+
+    function render() {
+      if (!state.config) return;
+      els.modebar.hidden = false;
+      els.advancedPanel.hidden = state.mode !== "advanced";
+      els.typeHelpBtn.hidden = state.mode === "advanced";
+      if (state.mode === "advanced") {
+        renderModeHeader();
+        els.modeSettings.hidden = true;
+        els.modeSettings.innerHTML = "";
+        els.rules.hidden = true;
+        els.rules.innerHTML = "";
+        renderAdvancedSettings();
+        notifyLayoutChanged();
+        return;
+      }
+      els.advancedPanel.innerHTML = "";
+      renderModeHeader();
+      const enabled = Boolean(modeConfig().enabled);
+      els.modeSettings.hidden = !enabled;
+      els.rules.hidden = state.mode === "advanced" || !enabled;
+      if (!enabled) {
+        els.modeSettings.innerHTML = "";
+        els.rules.innerHTML = "";
+        notifyLayoutChanged();
+        return;
+      }
+      renderModeSettings();
+      const rules = getRules();
+      els.rules.innerHTML = "";
+      if (!rules.length) {
+        els.rules.innerHTML = `<div class="empty">暂无规则</div>`;
+        notifyLayoutChanged();
+        return;
+      }
+      rules.forEach((rule, index) => {
+        els.rules.appendChild(renderRule(rule, index));
+      });
+      notifyLayoutChanged();
+    }
+
+    function renderModeHeader() {
+      const isAdvanced = state.mode === "advanced";
+      const conf = isAdvanced ? advancedSettingsFromConfig() : modeConfig();
+      const label = isAdvanced
+        ? "高级设置"
+        : (state.mode === "quickaction" ? "QuickAction" : "QuickCommand");
+      const enabled = isAdvanced
+        ? Boolean(conf.advanced_settings_enabled)
+        : Boolean(conf.enabled);
+      els.addRuleBtn.textContent = `新增 ${label}`;
+      els.addRuleBtn.hidden = isAdvanced || !enabled;
+      els.modeEnabled.checked = enabled;
+      els.modeEnabledText.textContent = `${label} ${enabled ? "已启用" : "已关闭"}`;
+    }
+
+    function renderModeSettings() {
+      const mode = state.mode;
+      const confirm = modeConfirm(mode);
+      const form = document.createElement("div");
+      form.className = "form-grid";
+      form.appendChild(textField("执行成功返回提示", modeNoticeTemplate(mode), (value) => {
+        modeConfig(mode).notice_template = value;
+        scheduleAutoSave(mode);
+      }, "", true));
+      form.appendChild(confirmSettingsField(confirm, mode));
+      form.appendChild(checkField("仅管理员可用", modeAdminOnly(mode), (value) => {
+        modeConfig(mode).admin_only = value;
+        scheduleAutoSave(mode, switchSaveOptions("仅管理员可用", value));
+      }));
+      const syncWithQuickActionChannelScope = mode === "quickcommand" ? modeSyncWithQuickActionChannelScope(mode) : false;
+      if (mode === "quickcommand") {
+        form.appendChild(checkField("与 QuickAction 渠道范围保持一致", syncWithQuickActionChannelScope, (value) => {
+          modeConfig(mode).sync_with_quickaction_channel_scope = value;
+          if (value) modeConfig(mode).channel_scope = structuredCloneSafe(modeChannelScope("quickaction"));
+          scheduleAutoSave(mode, switchSaveOptions("与 QuickAction 渠道范围保持一致", value));
+          renderModeSettings();
+        }));
+        form.appendChild(sshModeSettingsField(modeSshMode(), mode));
+      }
+      if (mode !== "quickcommand" || !syncWithQuickActionChannelScope) {
+        form.appendChild(channelScopeField(`${mode === "quickcommand" ? "QuickCommand" : "QuickAction"} 渠道范围`, modeChannelScope(mode), (saveOptions = {}) => {
+          scheduleAutoSave(mode, saveOptions);
+        }, mode));
+      }
+      els.modeSettings.innerHTML = "";
+      els.modeSettings.appendChild(form);
+    }
+
+    function renderAdvancedSettings() {
+      const advanced = advancedSettingsFromConfig();
+      els.advancedPanel.innerHTML = "";
+
+      const base = document.createElement("section");
+      base.className = "advanced-section";
+      const baseForm = document.createElement("div");
+      baseForm.className = "form-grid";
+      if (advanced.advanced_settings_enabled) {
+        baseForm.appendChild(fileSizeLimitField("文件大小上限", advanced.max_file_size_mb, (value) => {
+          advanced.max_file_size_mb = value;
+          scheduleAutoSave("advanced");
+        }, "为空、-、负数则不限制；为 0 则阻止所有文件"));
+        baseForm.appendChild(pathPickerField("文件动作白名单路径", quickactionAllowedPathsText(), (value) => {
+          quickactionAllowedPaths(value);
+          scheduleAutoSave("advanced");
+        }, "留空时白名单不生效；填写后文件动作的 path 必须位于白名单内", true));
+        base.appendChild(baseForm);
+        els.advancedPanel.appendChild(base);
+
+        const sleep = advanced.sleep_wake;
+        const sleepSection = document.createElement("section");
+        sleepSection.className = "advanced-section";
+        sleepSection.innerHTML = `<div class="advanced-title">Sleep / Wake 控制配置</div>`;
+        const sleepForm = document.createElement("div");
+        sleepForm.className = "form-grid";
+        sleepForm.appendChild(checkField("启用休眠/唤醒控制", sleep.enabled, (value) => {
+          sleep.enabled = value;
+          scheduleAutoSave("advanced", switchSaveOptions("启用休眠/唤醒控制", value));
+          renderAdvancedSettings();
+        }));
+        if (sleep.enabled) {
+          sleepForm.appendChild(selectField("休眠/唤醒关键词匹配模式", sleep.sleep_match_mode || "exact", [
+            ["contains", "包含"],
+            ["exact", "完全匹配"],
+            ["prefix", "前缀匹配"],
+            ["regex", "正则"],
+          ], (value) => {
+            sleep.sleep_match_mode = value;
+            scheduleAutoSave("advanced", { immediate: true });
+          }, "对临时休眠、永久休眠、唤醒关键词生效；状态查询固定完全匹配"));
+          sleepForm.appendChild(keywordListField("临时休眠关键词", sleep.sleep_keywords, (value) => {
+            sleep.sleep_keywords = value;
+            scheduleAutoSave("advanced");
+          }, "每行一个关键词；保存时会清理空行"));
+          sleepForm.appendChild(keywordListField("永久休眠关键词", sleep.permanent_sleep_keywords, (value) => {
+            sleep.permanent_sleep_keywords = value;
+            scheduleAutoSave("advanced");
+          }, "每行一个关键词；保存时会清理空行"));
+          sleepForm.appendChild(keywordListField("唤醒关键词", sleep.wake_keywords, (value) => {
+            sleep.wake_keywords = value;
+            scheduleAutoSave("advanced");
+          }, "每行一个关键词；保存时会清理空行"));
+          sleepForm.appendChild(keywordListField("状态查询关键词", sleep.status_keywords, (value) => {
+            sleep.status_keywords = value;
+            scheduleAutoSave("advanced");
+          }, "每行一个关键词；保存时会清理空行"));
+          sleepForm.appendChild(numberField("默认休眠秒数", sleep.default_sleep_seconds, (value) => {
+            sleep.default_sleep_seconds = value;
+            scheduleAutoSave("advanced");
+          }));
+          sleepForm.appendChild(checkField("仅管理员可控制休眠/唤醒", sleep.admin_only, (value) => {
+            sleep.admin_only = value;
+            scheduleAutoSave("advanced", switchSaveOptions("仅管理员可控制休眠/唤醒", value));
+          }));
+        }
+        sleepSection.appendChild(sleepForm);
+        els.advancedPanel.appendChild(sleepSection);
+      }
+    }
+
+    function renderRule(rule, index) {
+      const key = ruleKey(rule, index);
+      const expanded = isExpanded(key, index);
+      const card = document.createElement("article");
+      card.className = `rule ${rule.enabled ? "enabled" : ""} ${expanded ? "expanded" : ""}`;
+      card.dataset.index = String(index);
+
+      const title = displayName(rule);
+      const type = rule.action && rule.action.type || "";
+      const typeInfo = TYPE_MAP[type] || { label: type || "未设置", desc: "" };
+      const keywords = Array.isArray(rule.trigger_keywords) ? rule.trigger_keywords.join(", ") : "";
+      const hasKeywords = keywords.trim().length > 0;
+      const keywordSummary = hasKeywords ? shorten(keywords, 48) : "无触发关键词，暂不生效。";
+
+      card.innerHTML = `
+        <div class="rule-restore-hint">${RESTORE_HINT_TEXT}</div>
+        <div class="rule-surface">
+          <div class="rule-head">
+            <button type="button" class="icon expand" title="${expanded ? "折叠" : "展开"}">${expanded ? "-" : "+"}</button>
+            <div class="rule-title">
+              <div class="rule-name">${escapeHtml(title)}</div>
+              <div class="rule-meta">
+                <span class="badge">${escapeHtml(typeInfo.label)}</span>
+                <span>${escapeHtml(rule.match_mode || "contains")}</span>
+                <span class="${hasKeywords ? "" : "missing-keywords"}" title="${escapeHtml(hasKeywords ? keywords : keywordSummary)}">${escapeHtml(keywordSummary)}</span>
+              </div>
+            </div>
+            <div class="actions rule-tools">
+              <label class="switch" title="启用状态">
+                <input type="checkbox" class="enabled-input" ${rule.enabled ? "checked" : ""}>
+                <span class="slider"></span>
+              </label>
+              <button type="button" class="icon move-up" title="上移">↑</button>
+              <button type="button" class="icon move-down" title="下移">↓</button>
+              ${deleteButtonHtml(rule, index)}
+            </div>
+          </div>
+          <div class="rule-body"></div>
+        </div>
+      `;
+
+      card.querySelector(".expand").addEventListener("click", () => {
+        clearPendingDelete();
+        setExpanded(key, index, !card.classList.contains("expanded"));
+        render();
+      });
+      card.querySelector(".enabled-input").addEventListener("change", (event) => {
+        clearPendingDelete();
+        const previousEnabled = Boolean(rule.enabled);
+        rule.enabled = event.target.checked;
+        card.classList.toggle("enabled", rule.enabled);
+        saveEnabledStates(() => {
+          rule.enabled = previousEnabled;
+          render();
+        }, event.target.checked);
+      });
+      bindRuleDragHandle(card, rule, index, -1);
+      bindRuleDragHandle(card, rule, index, 1);
+      card.querySelector(".delete-rule").addEventListener("click", () => requestDeleteRule(rule, index));
+      card.querySelector(".rule-body").appendChild(renderRuleForm(rule, index));
+      return card;
+    }
+
+    function renderRuleForm(rule, index) {
+      const form = document.createElement("div");
+      form.className = "form-grid";
+      const mode = state.mode;
+      const nameKey = ruleNameKey(mode);
+      const action = ensureAction(rule);
+      const scheduleRuleSave = (options = {}) => scheduleAutoSave(mode, options);
+      form.appendChild(textField(mode === "quickcommand" ? "命令名称" : "动作名称", rule[nameKey] || "", (value) => {
+        rule[nameKey] = value;
+        rule.name = value;
+        scheduleRuleSave();
+      }, "", true));
+      form.appendChild(keywordListField("触发关键词", rule.trigger_keywords, (value) => {
+        rule.trigger_keywords = value;
+        scheduleRuleSave({ immediate: true });
+      }, "每行一个关键词；保存时会清理空行"));
+      form.appendChild(selectField("匹配模式", rule.match_mode || "contains", [
+        ["contains", "包含"],
+        ["exact", "完全匹配"],
+        ["prefix", "前缀匹配"],
+        ["regex", "正则"],
+      ], (value) => {
+        rule.match_mode = value;
+        scheduleRuleSave({ immediate: true });
+      }));
+      if (mode !== "quickcommand") {
+        form.appendChild(actionTypeField(action, () => {
+          scheduleRuleSave({ immediate: true });
+          render();
+        }, () => scheduleRuleSave()));
+      }
+      renderActionParams(form, action, scheduleRuleSave);
+      return form;
+    }
+
+    function renderActionParams(form, action, scheduleRuleSave = () => {}) {
+      if (state.mode === "quickcommand") {
+        action.type = "run_command";
+        form.appendChild(textAreaField("执行命令", action.command || "", (value) => {
+          action.command = value.trim();
+          scheduleRuleSave();
+        }, "执行固定本地命令", true));
+        form.appendChild(shellField(action, scheduleRuleSave));
+        form.appendChild(numberField("超时秒数", action.timeout || 10, (value) => {
+          action.timeout = value;
+          scheduleRuleSave();
+        }, "命令执行超过该秒数会被终止"));
+        return;
+      }
+      if (["screenshot_window", "list_windows", "close_process"].includes(action.type)) {
+        form.appendChild(jsonField("selector", action.selector || {}, (value) => {
+          action.selector = value;
+          scheduleRuleSave();
+        }, "窗口选择器，例如 {\"process\":\"Code.exe\",\"title_contains\":\"main.py\"}", true));
+      }
+      if (["read_file", "tail_file", "send_file"].includes(action.type)) {
+        form.appendChild(textField("path", action.path || "", (value) => {
+          action.path = value;
+          scheduleRuleSave();
+        }, "文件路径；allowed_paths 留空时白名单不生效，填写后必须位于白名单内", true));
+      }
+      if (action.type === "tail_file") {
+        form.appendChild(numberField("lines", action.lines || 100, (value) => {
+          action.lines = value;
+          scheduleRuleSave();
+        }, "读取文件最后多少行"));
+      }
+      if (action.type === "list_windows") {
+        form.appendChild(numberField("limit", action.limit || 20, (value) => {
+          action.limit = value;
+          scheduleRuleSave();
+        }, "窗口列表数量上限。"));
+      }
+      if (action.type === "close_process") {
+        form.appendChild(checkField("force", action.force !== false, (value) => {
+          action.force = value;
+          scheduleRuleSave(switchSaveOptions("force", value));
+        }, "强制关闭，等价于 taskkill /F。"));
+        form.appendChild(checkField("include_children", action.include_children !== false, (value) => {
+          action.include_children = value;
+          scheduleRuleSave(switchSaveOptions("include_children", value));
+        }, "包含子进程，等价于 taskkill /T。"));
+      }
+    }
+
+    function textField(label, value, onChange, hint = "", full = false) {
+      const field = baseField(label, hint, full);
+      const input = document.createElement("input");
+      input.value = value || "";
+      input.addEventListener("input", () => onChange(input.value.trim()));
+      field.appendChild(input);
+      return field;
+    }
+
+    function pathPickerField(label, value, onChange, hint = "", full = false) {
+      const field = baseField(label, hint, full);
+      const wrap = document.createElement("div");
+      wrap.className = "path-picker-control";
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = value || "";
+      input.setAttribute("autocomplete", "off");
+      const directoryButton = document.createElement("button");
+      directoryButton.type = "button";
+      directoryButton.textContent = "选择文件夹";
+      input.addEventListener("input", () => onChange(input.value.trim()));
+      const choosePath = async (type, button) => {
+        try {
+          directoryButton.disabled = true;
+          button.textContent = "选择中...";
+          const data = await apiGet("file-picker", { type });
+          if (data.path) {
+            input.value = data.path;
+            onChange(input.value.trim());
+            input.focus();
+          }
+        } catch (error) {
+          showToast(error.message || "选择路径失败，请手动输入路径", "error");
+        } finally {
+          directoryButton.disabled = false;
+          directoryButton.textContent = "选择文件夹";
+        }
+      };
+      directoryButton.addEventListener("click", () => choosePath("directory", directoryButton));
+      wrap.appendChild(input);
+      wrap.appendChild(directoryButton);
+      field.appendChild(wrap);
+      return field;
+    }
+
+    function numberField(label, value, onChange, hint = "") {
+      const field = baseField(label, hint);
+      const input = document.createElement("input");
+      input.type = "number";
+      input.min = "1";
+      input.value = String(value || 1);
+      input.addEventListener("input", () => onChange(Math.max(1, Number(input.value) || 1)));
+      field.appendChild(input);
+      return field;
+    }
+
+    function fileSizeLimitField(label, value, onChange, hint = "") {
+      const field = baseField(label, hint);
+      const wrap = document.createElement("div");
+      wrap.className = "size-limit-control";
+      const input = document.createElement("input");
+      const unit = document.createElement("select");
+      const current = fileSizeFromMb(value);
+      input.type = "number";
+      input.step = "any";
+      input.value = String(current.value);
+      ["KB", "MB", "GB"].forEach((name) => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        unit.appendChild(option);
+      });
+      unit.value = current.unit;
+      const commit = () => {
+        const amount = input.value.trim();
+        onChange(fileSizeToMb(amount, unit.value));
+      };
+      input.addEventListener("input", commit);
+      unit.addEventListener("change", commit);
+      wrap.appendChild(input);
+      wrap.appendChild(unit);
+      field.appendChild(wrap);
+      return field;
+    }
+
+    function textAreaField(label, value, onChange, hint = "", full = false) {
+      const field = baseField(label, hint, full);
+      const input = document.createElement("textarea");
+      input.value = value || "";
+      input.addEventListener("input", () => onChange(input.value));
+      field.appendChild(input);
+      return field;
+    }
+
+    function keywordListField(label, value, onChange, hint = "", options = {}) {
+      const field = baseField(label, hint);
+      const editor = document.createElement("div");
+      editor.className = "keyword-editor";
+      const list = document.createElement("div");
+      list.className = "keyword-list";
+      const inputWrap = document.createElement("div");
+      inputWrap.className = "keyword-input-wrap";
+      const input = document.createElement("input");
+      input.type = "text";
+      input.setAttribute("autocomplete", "off");
+      const addButton = document.createElement("button");
+      addButton.type = "button";
+      addButton.className = "keyword-confirm";
+      addButton.textContent = "添加";
+      inputWrap.appendChild(input);
+      inputWrap.appendChild(addButton);
+      editor.appendChild(list);
+      editor.appendChild(inputWrap);
+      field.appendChild(editor);
+
+      let keywords = parseKeywords(value);
+      let editingIndex = -1;
+      const abortController = new AbortController();
+
+      const commitKeywords = (nextKeywords) => {
+        keywords = nextKeywords;
+        onChange([...keywords]);
+        renderKeywords();
+      };
+      const cancelEdit = () => {
+        if (editingIndex < 0) return;
+        editingIndex = -1;
+        renderKeywords();
+      };
+      const parsedInput = (target) => {
+        const raw = target.value;
+        const items = parseKeywords(raw);
+        if (!items.length && raw.trim() !== raw) target.value = "";
+        return items;
+      };
+      const commitPendingInput = () => {
+        const items = parsedInput(input);
+        if (!items.length) return false;
+        input.value = "";
+        commitKeywords([...keywords, ...items]);
+        return true;
+      };
+      const addKeywords = () => {
+        if (!commitPendingInput()) return;
+        input.focus();
+      };
+      const saveEdit = (index, editInput) => {
+        const items = parsedInput(editInput);
+        if (!items.length) return;
+        const nextKeywords = keywords.slice();
+        nextKeywords.splice(index, 1, ...items);
+        editingIndex = -1;
+        commitKeywords(nextKeywords);
+      };
+      const renderKeywords = () => {
+        list.innerHTML = "";
+        keywords.forEach((keyword, index) => {
+          const row = document.createElement("div");
+          row.className = `keyword-row ${editingIndex === index ? "editing" : ""}`;
+          const actions = document.createElement("div");
+          actions.className = "keyword-actions";
+          const editButton = document.createElement("button");
+          editButton.type = "button";
+          editButton.textContent = editingIndex === index ? "确认" : "编辑";
+          const deleteButton = document.createElement("button");
+          deleteButton.type = "button";
+          deleteButton.className = "danger";
+          deleteButton.textContent = "删除";
+
+          if (editingIndex === index) {
+            const editInput = document.createElement("input");
+            editInput.className = "keyword-edit-input";
+            editInput.value = keyword;
+            editInput.addEventListener("keydown", (event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                saveEdit(index, editInput);
+              } else if (event.key === "Escape") {
+                editingIndex = -1;
+                renderKeywords();
+              }
+            });
+            editButton.addEventListener("click", () => saveEdit(index, editInput));
+            row.appendChild(editInput);
+            setTimeout(() => editInput.focus(), 0);
+          } else {
+            const text = document.createElement("span");
+            text.className = "keyword-text";
+            text.textContent = keyword;
+            editButton.addEventListener("click", () => {
+              editingIndex = index;
+              renderKeywords();
+            });
+            row.appendChild(text);
+          }
+
+          deleteButton.addEventListener("click", () => {
+            const nextKeywords = keywords.filter((_, itemIndex) => itemIndex !== index);
+            if (editingIndex === index) editingIndex = -1;
+            if (editingIndex > index) editingIndex -= 1;
+            commitKeywords(nextKeywords);
+          });
+          actions.appendChild(editButton);
+          actions.appendChild(deleteButton);
+          row.appendChild(actions);
+          list.appendChild(row);
+        });
+      };
+
+      input.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        addKeywords();
+      });
+      addButton.addEventListener("click", addKeywords);
+      if (typeof options.registerCommitPending === "function") {
+        options.registerCommitPending(commitPendingInput);
+      }
+      if (options.commitPendingOnUnmount) state.commitPendingInputs.add(commitPendingInput);
+      document.addEventListener("pointerdown", (event) => {
+        const target = event.target;
+        if (!(target instanceof Node)) return;
+        const editingRow = list.querySelector(".keyword-row.editing");
+        if (!editingRow || editingRow.contains(target)) return;
+        cancelEdit();
+      }, { capture: true, signal: abortController.signal });
+      renderKeywords();
+      new MutationObserver((_, observer) => {
+        if (document.contains(field)) return;
+        if (options.commitPendingOnUnmount) commitPendingInput();
+        state.commitPendingInputs.delete(commitPendingInput);
+        abortController.abort();
+        observer.disconnect();
+      }).observe(document.body, { childList: true, subtree: true });
+      return field;
+    }
+
+    function selectField(label, value, options, onChange, hint = "") {
+      const field = baseField(label, hint);
+      const select = document.createElement("select");
+      options.forEach(([optionValue, text]) => {
+        const option = document.createElement("option");
+        option.value = optionValue;
+        option.textContent = text;
+        select.appendChild(option);
+      });
+      select.value = value;
+      select.addEventListener("change", () => onChange(select.value));
+      field.appendChild(select);
+      return field;
+    }
+
+    function comboField(label, value, options, onChange, hint = "") {
+      const field = baseField(label, hint);
+      const wrap = document.createElement("div");
+      wrap.className = "type-wrap";
+      const input = document.createElement("input");
+      input.setAttribute("autocomplete", "off");
+      input.value = value || "";
+      const dropdown = document.createElement("button");
+      dropdown.type = "button";
+      dropdown.className = "type-dropdown";
+      dropdown.setAttribute("aria-label", `展开${label}选项`);
+      const menu = document.createElement("div");
+      menu.className = "type-menu type-menu-portal";
+      wrap.appendChild(input);
+      wrap.appendChild(dropdown);
+      field.appendChild(wrap);
+
+      const drawOptions = (showAll = false) => {
+        const query = showAll ? "" : input.value.trim().toLowerCase();
+        const filtered = options.filter(([optionValue, text]) => {
+          const target = `${optionValue} ${text || ""}`.toLowerCase();
+          return !query || fuzzyMatch(target, query);
+        });
+        menu.innerHTML = "";
+        filtered.forEach(([optionValue, text]) => {
+          const option = document.createElement("div");
+          option.className = "type-option";
+          option.innerHTML = `<strong>${escapeHtml(optionValue)}</strong><span>${escapeHtml(text || optionValue)}</span>`;
+          option.addEventListener("click", () => {
+            input.value = optionValue;
+            menu.classList.remove("open");
+            menu.remove();
+            onChange(optionValue);
+          });
+          menu.appendChild(option);
+        });
+        if (filtered.length) {
+          if (!menu.isConnected) document.body.appendChild(menu);
+          positionTypeMenu(wrap, menu);
+          menu.classList.add("open");
+        } else {
+          menu.classList.remove("open");
+          menu.remove();
+        }
+      };
+      const openOptions = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        drawOptions(true);
+        input.focus();
+      };
+      dropdown.addEventListener("pointerdown", openOptions);
+      dropdown.addEventListener("click", openOptions);
+      input.addEventListener("input", () => {
+        onChange(input.value);
+        if (menu.classList.contains("open")) drawOptions();
+      });
+      input.addEventListener("blur", () => {
+        window.setTimeout(() => {
+          if (!menu.matches(":hover")) {
+            menu.classList.remove("open");
+            menu.remove();
+          }
+        }, 120);
+      });
+      return field;
+    }
+
+    function modeButtonField(label, value, options, onChange, hint = "") {
+      const field = baseField(label, hint);
+      const group = document.createElement("div");
+      let currentValue = value;
+      group.className = "segmented-options";
+      group.setAttribute("role", "radiogroup");
+      group.setAttribute("aria-label", label);
+      const syncActiveOption = (nextValue) => {
+        group.querySelectorAll(".segment-option").forEach((item) => {
+          const active = item.dataset.value === nextValue;
+          item.classList.toggle("active", active);
+          item.setAttribute("aria-checked", active ? "true" : "false");
+        });
+      };
+      options.forEach(([optionValue, text]) => {
+        const button = document.createElement("button");
+        const active = optionValue === value;
+        button.type = "button";
+        button.className = `segment-option ${active ? "active" : ""}`;
+        button.dataset.value = optionValue;
+        button.textContent = text;
+        button.setAttribute("role", "radio");
+        button.setAttribute("aria-checked", active ? "true" : "false");
+        const selectOption = (event) => {
+          if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          if (optionValue === currentValue) return;
+          currentValue = optionValue;
+          syncActiveOption(optionValue);
+          onChange(optionValue);
+        };
+        button.addEventListener("pointerdown", selectOption);
+        button.addEventListener("click", selectOption);
+        group.appendChild(button);
+      });
+      field.appendChild(group);
+      return field;
+    }
+
+    function checkField(label, value, onChange, hint = "") {
+      const field = baseField(label, hint);
+      const wrap = document.createElement("label");
+      wrap.className = "mode-state";
+      wrap.innerHTML = `<span class="switch"><input type="checkbox"><span class="slider"></span></span><span class="switch-state">${escapeHtml(value ? "开启" : "关闭")}</span>`;
+      const input = wrap.querySelector("input");
+      const text = wrap.querySelector(".switch-state");
+      input.checked = Boolean(value);
+      input.addEventListener("change", () => {
+        text.textContent = input.checked ? "开启" : "关闭";
+        onChange(input.checked);
+      });
+      field.appendChild(wrap);
+      return field;
+    }
+
+    function confirmSettingsField(confirm, mode) {
+      const row = document.createElement("div");
+      row.className = "confirm-settings-row";
+      row.appendChild(checkField("启用二次确认", confirm.enabled, (value) => {
+        confirm.enabled = value;
+        scheduleAutoSave(mode, { immediate: true, confirmState: value });
+        renderConfirmDetailFields(row, confirm, mode);
+        notifyLayoutChanged();
+      }));
+      renderConfirmDetailFields(row, confirm, mode);
+      return row;
+    }
+
+    function sshModeSettingsField(sshMode, mode) {
+      const row = document.createElement("div");
+      row.className = "shell-session-settings";
+      const details = document.createElement("div");
+      details.className = "shell-session-details";
+      const toggleField = checkField("Shell 会话模式", sshMode.enabled, (value) => {
+        sshMode.enabled = value;
+        scheduleAutoSave(mode, switchSaveOptions("Shell 会话模式", value));
+        renderSshModeDetailFields(details, sshMode, mode);
+        notifyLayoutChanged();
+      });
+      toggleField.classList.add("shell-session-toggle");
+      row.appendChild(toggleField);
+      row.appendChild(details);
+      renderSshModeDetailFields(details, sshMode, mode);
+      return row;
+    }
+
+    function renderSshModeDetailFields(details, sshMode, mode) {
+      const row = details.closest(".shell-session-settings") || details;
+      row.classList.toggle("disabled", !sshMode.enabled);
+      details.querySelectorAll(".shell-session-detail").forEach((field) => field.remove());
+      if (!sshMode.enabled) return;
+      const triggerField = keywordListField("触发关键词", sshMode.trigger_keywords, (value) => {
+        sshMode.trigger_keywords = value;
+        scheduleAutoSave(mode);
+      }, "每行一个关键词；保存时会清理空行");
+      triggerField.classList.add("shell-session-detail");
+      details.appendChild(triggerField);
+      const exitField = keywordListField("退出关键词", sshMode.exit_keywords, (value) => {
+        sshMode.exit_keywords = value;
+        scheduleAutoSave(mode);
+      }, "每行一个关键词；保存时会清理空行");
+      exitField.classList.add("shell-session-detail");
+      details.appendChild(exitField);
+      const matchField = selectField("匹配模式", sshMode.match_mode || "exact", [
+        ["contains", "包含"],
+        ["exact", "完全匹配"],
+        ["prefix", "前缀匹配"],
+        ["regex", "正则"],
+      ], (value) => {
+        sshMode.match_mode = value;
+        scheduleAutoSave(mode, { immediate: true });
+      });
+      matchField.classList.add("shell-session-detail");
+      details.appendChild(matchField);
+      const shell = { shell: sshMode.shell || defaultShell() };
+      const shellFieldEl = shellField(shell, () => {
+        sshMode.shell = shell.shell || defaultShell();
+        scheduleAutoSave(mode, { immediate: true });
+      });
+      shellFieldEl.classList.add("shell-session-detail");
+      details.appendChild(shellFieldEl);
+      const timeoutField = numberField("超时秒数", sshMode.timeout || 1000, (value) => {
+        sshMode.timeout = value;
+        scheduleAutoSave(mode);
+      }, "超过该秒数无消息会自动退出");
+      timeoutField.classList.add("confirm-timeout", "shell-session-detail");
+      details.appendChild(timeoutField);
+    }
+
+    function renderConfirmDetailFields(row, confirm, mode) {
+      row.classList.toggle("disabled", !confirm.enabled);
+      row.querySelectorAll(".confirm-detail").forEach((field) => field.remove());
+      if (confirm.enabled) {
+        const confirmTextField = textField("确认语", confirm.confirm_text, (value) => {
+          confirm.confirm_text = value;
+          scheduleAutoSave(mode);
+        });
+        confirmTextField.classList.add("confirm-detail");
+        row.appendChild(confirmTextField);
+        const timeoutField = numberField("确认超时秒数", confirm.timeout_seconds, (value) => {
+          confirm.timeout_seconds = value;
+          scheduleAutoSave(mode);
+        });
+        timeoutField.classList.add("confirm-timeout", "confirm-detail");
+        row.appendChild(timeoutField);
+      }
+    }
+
+    function channelScopeField(title, scope, onChange, mode = state.mode) {
+      const field = document.createElement("div");
+      field.className = "channel-scope-field";
+      const titleEl = document.createElement("div");
+      titleEl.className = "channel-scope-title";
+      const titleText = document.createElement("span");
+      titleText.textContent = title;
+      titleEl.appendChild(titleText);
+      const actions = document.createElement("div");
+      actions.className = "channel-scope-actions";
+      const hasSelectableMode = channelScopeHasSelectableMode(scope);
+      const selectAllButton = document.createElement("button");
+      selectAllButton.type = "button";
+      selectAllButton.textContent = "全选";
+      selectAllButton.addEventListener("click", () => {
+        if (!hasSelectableMode) return;
+        clearChannelScopeUndo(mode);
+        selectAllChannelScope(scope);
+        onChange({ immediate: true });
+        rerenderModeSettingsSoon();
+        showToast("已全选渠道", "ok");
+      });
+      const clearButton = document.createElement("button");
+      clearButton.type = "button";
+      clearButton.textContent = "清空";
+      clearButton.addEventListener("click", () => {
+        if (!hasSelectableMode) return;
+        clearChannelScopeUndo(mode);
+        clearChannelScope(scope);
+        onChange({ immediate: true });
+        rerenderModeSettingsSoon();
+        showToast("已清空渠道", "ok");
+      });
+      const autoButton = document.createElement("button");
+      autoButton.type = "button";
+      const undoSnapshot = hasSelectableMode ? state.channelScopeUndo[mode] : null;
+      autoButton.textContent = undoSnapshot ? "撤回" : "自动配置";
+      autoButton.title = undoSnapshot
+        ? "恢复自动配置前的渠道范围"
+        : "检测 AstrBot 可选平台，并根据日志对话记录自动勾选渠道";
+      autoButton.addEventListener("click", async () => {
+        if (undoSnapshot) {
+          restoreChannelScopeFromUndo(scope, mode);
+          onChange({ immediate: true });
+          rerenderModeSettingsSoon();
+          showToast("已撤回自动配置", "ok");
+          return;
+        }
+        const snapshot = snapshotChannelScope(scope);
+        autoButton.disabled = true;
+        autoButton.textContent = "检查中...";
+        try {
+          const data = await apiGet("platform-scope");
+          const addedOptions = mergePlatformScopeOptions(data);
+          const addedChannels = applyLogChannelScope(scope, data);
+          if (addedChannels || addedOptions) {
+            state.channelScopeUndo[mode] = snapshot;
+            onChange({ immediate: true });
+          }
+          rerenderModeSettingsSoon();
+          showToast(
+            addedChannels || addedOptions
+              ? `已自动勾选 ${addedChannels} 个渠道，新增 ${addedOptions} 个可选渠道`
+              : "没有新的日志渠道或可选渠道需要更新",
+            "ok"
+          );
+        } catch (error) {
+          showToast(error.message || "自动配置渠道失败", "error");
+          renderModeSettings();
+        }
+      });
+      if (mode === "quickcommand" && modeSyncWithQuickActionChannelScope(mode)) {
+        selectAllButton.disabled = true;
+        clearButton.disabled = true;
+        autoButton.disabled = true;
+      }
+      actions.classList.toggle("hidden", !hasSelectableMode);
+      selectAllButton.disabled = selectAllButton.disabled || !hasSelectableMode;
+      clearButton.disabled = clearButton.disabled || !hasSelectableMode;
+      autoButton.disabled = autoButton.disabled || !hasSelectableMode;
+      actions.appendChild(selectAllButton);
+      actions.appendChild(clearButton);
+      actions.appendChild(autoButton);
+      titleEl.appendChild(actions);
+      field.appendChild(titleEl);
+
+      const grid = document.createElement("div");
+      grid.className = "channel-scope-grid";
+      grid.appendChild(modeButtonField("范围模式", scope.mode, CHANNEL_SCOPE_MODES, (value) => {
+        commitPendingInputs();
+        scope.mode = value;
+        onChange({ immediate: true });
+        rerenderModeSettingsSoon();
+      }));
+
+      if (scope.mode === "include" || scope.mode === "exclude") {
+        const key = scope.mode === "include" ? "include_channels" : "exclude_channels";
+        const options = document.createElement("div");
+        options.className = "field";
+        options.innerHTML = `<div class="label-line"><label>${scope.mode === "include" ? "包含渠道" : "排除渠道"}</label></div>`;
+        const chips = document.createElement("div");
+        chips.className = "channel-options";
+        const selected = new Set(parseKeywords(scope[key]));
+        const channelOptions = channelScopeOptions(scope);
+        channelOptions.forEach(([value, label]) => {
+          const chip = document.createElement("label");
+          chip.className = "channel-chip";
+          chip.innerHTML = `<input type="checkbox" value="${escapeHtml(value)}"><span>${escapeHtml(label)}</span>`;
+          const input = chip.querySelector("input");
+          input.checked = selected.has(value);
+          input.addEventListener("change", () => {
+            if (input.checked) selected.add(value);
+            else selected.delete(value);
+            scope[key] = channelOptions.map(([itemValue]) => itemValue).filter((itemValue) => selected.has(itemValue));
+            onChange();
+          });
+          chips.appendChild(chip);
+        });
+        options.appendChild(chips);
+        grid.appendChild(options);
+      } else if (scope.mode === "custom") {
+        grid.appendChild(keywordListField("自定义平台名", scope.platform_names, (value) => {
+          scope.platform_names = value;
+          onChange();
+        }, "每行一个平台名；保存时会清理空行"));
+      }
+
+      field.appendChild(grid);
+      return field;
+    }
+
+    function jsonField(label, value, onChange, hint = "", full = false) {
+      const field = baseField(label, hint, full);
+      const input = document.createElement("textarea");
+      input.value = JSON.stringify(value || {}, null, 2);
+      const setJsonValue = (nextValue) => {
+        input.value = JSON.stringify(nextValue || {}, null, 2);
+        onChange(nextValue || {});
+        input.setCustomValidity("");
+      };
+      input.addEventListener("input", () => {
+        try {
+          onChange(JSON.parse(input.value || "{}"));
+          input.setCustomValidity("");
+        } catch (error) {
+          input.setCustomValidity("JSON 无效");
+        }
+      });
+      const editor = document.createElement("div");
+      editor.className = "selector-editor";
+      editor.appendChild(input);
+      if (label === "selector") {
+        field.querySelector(".label-line").classList.add("selector-label-line");
+        const selectorButton = document.createElement("button");
+        selectorButton.type = "button";
+        selectorButton.className = "selector-picker-button";
+        selectorButton.textContent = "选择窗口";
+        const picker = windowPickerField(value || {}, setJsonValue, (text) => {
+          input.value = text;
+          input.focus();
+          input.select();
+          input.setSelectionRange(0, input.value.length);
+          try {
+            return document.execCommand("copy");
+          } catch {
+            return false;
+          }
+        });
+        picker.hidden = true;
+        selectorButton.addEventListener("click", () => {
+          const opening = picker.hidden;
+          picker.hidden = !opening;
+          selectorButton.textContent = opening ? "收起窗口" : "选择窗口";
+          if (opening && picker.dataset.loaded !== "1") {
+            picker.dataset.loaded = "1";
+            picker.loadWindows();
+          }
+          notifyLayoutChanged();
+        });
+        field.querySelector(".label-line").appendChild(selectorButton);
+        editor.appendChild(picker);
+      }
+      field.appendChild(editor);
+      return field;
+    }
+
+    function windowPickerField(value, onSelect, onCopyFallback) {
+      const wrap = document.createElement("div");
+      wrap.className = "window-picker";
+      wrap.innerHTML = `
+        <div class="window-picker-head">
+          <input type="text" class="window-query" autocomplete="off" placeholder="搜索窗口、进程、PID">
+          <button type="button" class="window-refresh">刷新窗口</button>
+        </div>
+        <div class="window-count">未加载窗口</div>
+        <div class="window-list"></div>
+        <div class="window-status"></div>
+      `;
+      const query = wrap.querySelector(".window-query");
+      const refresh = wrap.querySelector(".window-refresh");
+      const count = wrap.querySelector(".window-count");
+      const list = wrap.querySelector(".window-list");
+      const status = wrap.querySelector(".window-status");
+      const picker = {
+        windows: [],
+        selectedKey: selectorKey(value),
+        busy: false,
+      };
+
+      const setStatus = (message, kind = "") => {
+        status.textContent = message || "";
+        status.className = `window-status ${kind}`.trim();
+      };
+      const setBusy = (busy) => {
+        picker.busy = busy;
+        refresh.disabled = busy;
+      };
+      const loadWindows = async () => {
+        setBusy(true);
+        setStatus("正在刷新窗口...");
+        try {
+          const data = await apiGet("windows", {
+            q: query.value.trim(),
+            limit: 100,
+          });
+          picker.windows = Array.isArray(data.items) ? data.items : [];
+          renderWindowList();
+          setStatus("窗口列表已刷新。", "ok");
+        } catch (error) {
+          setStatus(error.message || "刷新窗口失败", "error");
+        } finally {
+          setBusy(false);
+        }
+      };
+      const chooseWindow = (item) => {
+        const selector = selectorForWindow(item);
+        picker.selectedKey = selectorKey(selector);
+        onSelect(selector);
+        renderWindowList();
+        setStatus("已写入 selector。", "ok");
+      };
+      const copyWindowSelector = async (item) => {
+        const selector = selectorForWindow(item);
+        const text = JSON.stringify(selector, null, 2);
+        try {
+          await navigator.clipboard.writeText(text);
+          setStatus("选择器已复制到剪贴板。", "ok");
+        } catch {
+          const copied = onCopyFallback(text);
+          if (copied) {
+            setStatus("已选中选择器文本，并已复制到剪贴板。", "ok");
+          } else {
+            setStatus("已选中选择器文本，请手动复制。", "error");
+          }
+        }
+      };
+      const renderWindowList = () => {
+        count.textContent = `${picker.windows.length} 个窗口`;
+        if (!picker.windows.length) {
+          list.innerHTML = '<div class="window-empty">未找到窗口</div>';
+          return;
+        }
+        list.innerHTML = "";
+        picker.windows.forEach((item) => {
+          const row = document.createElement("article");
+          const selector = selectorForWindow(item);
+          row.className = `window-row ${picker.selectedKey === selectorKey(selector) ? "selected" : ""}`;
+          row.innerHTML = `
+            <div>
+              <div class="window-title">${escapeHtml(item.title || "(无标题)")}</div>
+              <div class="window-sub">
+                <span class="badge">${escapeHtml(item.is_foreground ? "前台" : "窗口")}</span>
+                <span>${escapeHtml(item.process_name || "unknown")}</span>
+                <span>PID=${escapeHtml(item.pid)}</span>
+                <span>HWND=${escapeHtml(item.hwnd_hex || item.hwnd || "")}</span>
+                <span>${escapeHtml(item.class_name || "unknown")}</span>
+              </div>
+            </div>
+            <div class="window-row-actions">
+              <button type="button" data-action="select">选择</button>
+              <button type="button" data-action="copy">复制</button>
+            </div>
+          `;
+          row.addEventListener("dblclick", (event) => {
+            if (event.target.closest(".window-row-actions")) return;
+            chooseWindow(item);
+          });
+          row.querySelector('[data-action="select"]').addEventListener("click", () => chooseWindow(item));
+          row.querySelector('[data-action="copy"]').addEventListener("click", () => copyWindowSelector(item));
+          list.appendChild(row);
+        });
+      };
+
+      refresh.addEventListener("click", loadWindows);
+      query.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        loadWindows();
+      });
+      wrap.loadWindows = loadWindows;
+      return wrap;
+    }
+
+    function selectorForWindow(item) {
+      if (isObject(item.selector)) return structuredCloneSafe(item.selector);
+      return {
+        process: item.process_name || "",
+        title_contains: item.title || "",
+        class: item.class_name || "",
+      };
+    }
+
+    function selectorKey(selector) {
+      return JSON.stringify(selector || {});
+    }
+
+    function actionTypeField(action, onChange, onInput = () => {}) {
+      const field = baseField("执行动作", "", true);
+      const wrap = document.createElement("div");
+      wrap.className = "type-wrap";
+      const input = document.createElement("input");
+      input.value = action.type || "";
+      input.setAttribute("autocomplete", "off");
+      const dropdown = document.createElement("button");
+      dropdown.type = "button";
+      dropdown.className = "type-dropdown";
+      dropdown.setAttribute("aria-label", "展开动作类型");
+      const menu = document.createElement("div");
+      menu.className = "type-menu type-menu-portal";
+      wrap.appendChild(input);
+      wrap.appendChild(dropdown);
+      field.appendChild(wrap);
+
+      const drawOptions = (showAll = false) => {
+        const query = showAll ? "" : input.value.trim().toLowerCase();
+        const options = TYPE_DEFS.filter(([value, label, desc]) => {
+          const target = `${value} ${label} ${desc}`.toLowerCase();
+          return !query || fuzzyMatch(target, query);
+        });
+        menu.innerHTML = "";
+        options.forEach(([value, label, desc]) => {
+          const option = document.createElement("div");
+          option.className = "type-option";
+          option.innerHTML = `<strong>${escapeHtml(value)}</strong><span>${escapeHtml(label)} - ${escapeHtml(desc)}</span>`;
+          option.addEventListener("click", () => {
+            input.value = value;
+            action.type = value;
+            applyActionDefaults(action);
+            menu.classList.remove("open");
+            menu.remove();
+            onChange();
+          });
+          menu.appendChild(option);
+        });
+        if (options.length) {
+          if (!menu.isConnected) document.body.appendChild(menu);
+          positionTypeMenu(wrap, menu);
+          menu.classList.add("open");
+        } else {
+          menu.classList.remove("open");
+          menu.remove();
+        }
+      };
+      const openOptions = () => drawOptions(true);
+      const openFromDropdown = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openOptions();
+        input.focus();
+      };
+
+      dropdown.addEventListener("pointerdown", openFromDropdown);
+      dropdown.addEventListener("click", openFromDropdown);
+      input.addEventListener("input", () => {
+        action.type = input.value.trim();
+        onInput();
+        if (menu.classList.contains("open")) drawOptions();
+      });
+      input.addEventListener("change", () => {
+        action.type = input.value.trim();
+        applyActionDefaults(action);
+        onChange();
+      });
+      return field;
+    }
+
+    function positionTypeMenu(anchor, menu) {
+      const rect = anchor.getBoundingClientRect();
+      const gap = 4;
+      const viewportGap = 10;
+      const availableBelow = Math.max(120, window.innerHeight - rect.bottom - viewportGap);
+      menu.style.left = `${Math.round(rect.left)}px`;
+      menu.style.top = `${Math.round(rect.bottom + gap)}px`;
+      menu.style.width = `${Math.round(rect.width)}px`;
+      menu.style.maxHeight = `${Math.min(260, availableBelow)}px`;
+    }
+
+    function shellField(action, scheduleRuleSave = () => {}) {
+      return comboField("Shell", action.shell || defaultShell(), shellOptions(action.shell), (value) => {
+        action.shell = value.trim() || defaultShell();
+        scheduleRuleSave({ immediate: true });
+      });
+    }
+
+    function shellOptions(currentValue = "") {
+      const items = [];
+      const seen = new Set();
+      const add = (value, label) => {
+        const normalized = String(value || "").trim();
+        if (!normalized || seen.has(normalized.toLowerCase())) return;
+        seen.add(normalized.toLowerCase());
+        items.push([normalized, label || normalized]);
+      };
+      state.availableShells.forEach((item) => {
+        add(item.value, item.label ? `${item.value} - ${item.label}` : item.value);
+      });
+      ["pwsh", "powershell", "cmd", "bash", "sh", "wsl"].forEach((name) => add(name, name));
+      add(currentValue, currentValue);
+      return items;
+    }
+
+    function defaultShell() {
+      const first = shellOptions()[0];
+      return first ? first[0] : "pwsh";
+    }
+
+    function baseField(label, hint = "", full = false) {
+      const field = document.createElement("div");
+      field.className = `field ${full ? "full" : ""}`;
+      const labelLine = document.createElement("div");
+      labelLine.className = "label-line";
+      labelLine.innerHTML = `<label>${escapeHtml(label)}</label>`;
+      if (hint) {
+        const hintEl = document.createElement("span");
+        hintEl.className = "hint";
+        hintEl.textContent = `(${hint})`;
+        labelLine.appendChild(hintEl);
+      }
+      field.appendChild(labelLine);
+      return field;
+    }
+
+    function addRule() {
+      clearPendingDelete();
+      const rules = getRules();
+      const mode = state.mode;
+      const nameKey = ruleNameKey();
+      const rule = {
+        __template_key: "rule",
+        enabled: true,
+        [nameKey]: mode === "quickcommand" ? "New QuickCommand" : "New QuickAction",
+        name: mode === "quickcommand" ? "New QuickCommand" : "New QuickAction",
+        trigger_keywords: [],
+        match_mode: "contains",
+        use_channel_scope: false,
+        channel_scope: { mode: "global", include_channels: [], exclude_channels: [], platform_names: [] },
+        action: { type: "" },
+      };
+      rules.unshift(rule);
+      state.expanded[mode] = state.expanded[mode] || {};
+      state.expanded[mode]["0"] = true;
+      saveExpanded();
+      render();
+      showRuleAddIndicator(0);
+      scrollRuleIntoView(0);
+      scheduleAutoSave(mode, { immediate: true });
+    }
+
+    function deleteRule(index, rule = null, previousPositions = null) {
+      const rules = getRules();
+      const targetIndex = rule ? rules.indexOf(rule) : index;
+      if (targetIndex < 0 || targetIndex >= rules.length) return;
+      const expandedByRule = captureExpandedStates(rules);
+      rules.splice(targetIndex, 1);
+      clearPendingDelete();
+      restoreExpandedStates(rules, expandedByRule);
+      render();
+      animateRuleReflow(previousPositions);
+      scheduleAutoSave(state.mode, { immediate: true });
+    }
+
+    function moveRule(index, delta) {
+      const rules = getRules();
+      const next = index + delta;
+      if (next < 0 || next >= rules.length) return;
+      const previousPositions = captureRulePositions(rules);
+      const expandedByRule = captureExpandedStates(rules);
+      const [item] = rules.splice(index, 1);
+      rules.splice(next, 0, item);
+      restoreExpandedStates(rules, expandedByRule);
+      render();
+      animateRuleMove(previousPositions, item, delta);
+      scheduleAutoSave(state.mode, { immediate: true });
+    }
+
+    function captureRulePositions(rules = getRules()) {
+      const positions = new Map();
+      els.rules.querySelectorAll(".rule").forEach((card) => {
+        const index = Number(card.dataset.index);
+        const rule = rules[index];
+        if (rule) positions.set(rule, card.getBoundingClientRect());
+      });
+      return positions;
+    }
+
+    function animateRuleMove(previousPositions, movedRule, direction) {
+      if (!previousPositions || !previousPositions.size) return;
+      const rules = getRules();
+      const cards = [];
+      let movedRect = null;
+      els.rules.querySelectorAll(".rule").forEach((card) => {
+        const index = Number(card.dataset.index);
+        const rule = rules[index];
+        const previous = previousPositions.get(rule);
+        if (!previous) return;
+        const current = card.getBoundingClientRect();
+        if (rule === movedRule) movedRect = ruleMoveIndicatorRect(card);
+        const deltaY = previous.top - current.top;
+        if (!deltaY) return;
+        card.classList.add("rule-moving");
+        card.style.transition = "none";
+        card.style.transform = `translate3d(0, ${deltaY}px, 0)`;
+        cards.push(card);
+      });
+      if (!cards.length) return;
+      cards.forEach((card) => card.getBoundingClientRect());
+      requestAnimationFrame(() => {
+        showRuleMoveIndicator(movedRect, direction);
+        cards.forEach((card) => {
+          card.style.transition = "";
+          card.style.transform = "";
+        });
+        window.setTimeout(() => {
+          cards.forEach((card) => card.classList.remove("rule-moving"));
+        }, RULE_MOVE_ANIMATION_MS);
+      });
+    }
+
+    function animateRuleReflow(previousPositions) {
+      if (!previousPositions || !previousPositions.size) return;
+      const rules = getRules();
+      const cards = [];
+      els.rules.querySelectorAll(".rule").forEach((card) => {
+        const index = Number(card.dataset.index);
+        const rule = rules[index];
+        const previous = previousPositions.get(rule);
+        if (!previous) return;
+        const current = card.getBoundingClientRect();
+        const deltaY = previous.top - current.top;
+        if (!deltaY) return;
+        card.classList.add("rule-moving");
+        card.style.transition = "none";
+        card.style.transform = `translate3d(0, ${deltaY}px, 0)`;
+        cards.push(card);
+      });
+      if (!cards.length) return;
+      cards.forEach((card) => card.getBoundingClientRect());
+      requestAnimationFrame(() => {
+        cards.forEach((card) => {
+          card.style.transition = "";
+          card.style.transform = "";
+        });
+        window.setTimeout(() => {
+          cards.forEach((card) => card.classList.remove("rule-moving"));
+        }, RULE_MOVE_ANIMATION_MS);
+      });
+    }
+
+    function showRuleMoveIndicator(ruleRect, direction, symbol = null) {
+      if (!ruleRect || !els.rules) return;
+      const indicator = document.createElement("div");
+      const indicatorKind = symbol === "+" ? "add" : (direction < 0 ? "up" : "down");
+      indicator.className = `rule-move-indicator ${indicatorKind}`;
+      indicator.textContent = symbol || (direction < 0 ? "↑" : "↓");
+      indicator.setAttribute("aria-hidden", "true");
+      const rulesRect = els.rules.getBoundingClientRect();
+      indicator.style.top = `${ruleRect.top - rulesRect.top + ruleRect.height / 2}px`;
+      els.rules.appendChild(indicator);
+      window.setTimeout(() => indicator.remove(), RULE_MOVE_INDICATOR_MS);
+    }
+
+    function showRuleAddIndicator(index) {
+      requestAnimationFrame(() => {
+        const card = els.rules.querySelector(`.rule[data-index="${index}"]`);
+        if (card) showRuleMoveIndicator(ruleMoveIndicatorRect(card), -1, "+");
+      });
+    }
+
+    function ruleMoveIndicatorRect(card) {
+      const head = card.querySelector(".rule-head");
+      return (head || card).getBoundingClientRect();
+    }
+
+    function bindRuleDragHandle(card, rule, index, direction) {
+      const handle = card.querySelector(direction < 0 ? ".move-up" : ".move-down");
+      if (!handle) return;
+      handle.addEventListener("pointerdown", (event) => startRuleDrag(event, card, rule, index, direction));
+      handle.addEventListener("click", (event) => {
+        if (handle.dataset.dragConsumed === "1" || state.ruleDrag) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          handle.dataset.dragConsumed = "";
+          return;
+        }
+        clearPendingDelete();
+        moveRule(index, direction);
+      }, true);
+    }
+
+    function startRuleDrag(event, card, rule, index, direction) {
+      if (event.button !== undefined && event.button !== 0) return;
+      clearPendingDelete();
+      const rules = getRules();
+      const bounds = card.getBoundingClientRect();
+      const drag = {
+        pointerId: event.pointerId,
+        card,
+        surface: card.querySelector(".rule-surface"),
+        hint: card.querySelector(".rule-restore-hint"),
+        handle: event.currentTarget,
+        rule,
+        direction,
+        startIndex: index,
+        targetIndex: index,
+        startX: event.clientX,
+        startY: event.clientY,
+        lastX: event.clientX,
+        lastY: event.clientY,
+        width: Math.max(1, bounds.width),
+        height: Math.max(1, bounds.height),
+        restoreThreshold: measureRestoreThreshold(card.querySelector(".rule-restore-hint"), Math.max(1, bounds.width)),
+        started: false,
+        restoreActive: false,
+        moved: false,
+        expandedByRule: captureExpandedStates(rules),
+        placeholder: null,
+        holdTimer: 0,
+      };
+      drag.holdTimer = window.setTimeout(() => activateRuleDrag(drag), DRAG_HOLD_MS);
+      state.ruleDrag = drag;
+      drag.handle.setPointerCapture?.(event.pointerId);
+      drag.handle.addEventListener("pointermove", onRuleDragMove);
+      drag.handle.addEventListener("pointerup", finishRuleDrag);
+      drag.handle.addEventListener("pointercancel", cancelRuleDrag);
+    }
+
+    function activateRuleDrag(drag) {
+      if (state.ruleDrag !== drag) return;
+      drag.started = true;
+      drag.card.classList.add("dragging");
+      createRuleDragPlaceholder(drag);
+      updateRuleDragPosition(drag);
+      updateRuleDragTransform(drag);
+    }
+
+    function onRuleDragMove(event) {
+      const drag = state.ruleDrag;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      drag.lastX = event.clientX;
+      drag.lastY = event.clientY;
+      if (!drag.started) {
+        const movedFar = Math.hypot(drag.lastX - drag.startX, drag.lastY - drag.startY) > 8;
+        if (movedFar) {
+          drag.moved = true;
+          completeRuleDrag(drag, true, false);
+        }
+        return;
+      }
+      event.preventDefault();
+      updateRuleDragPosition(drag);
+      updateRuleDragTransform(drag);
+    }
+
+    function updateRuleDragPosition(drag) {
+      const cards = Array.from(els.rules.querySelectorAll(".rule")).filter((card) => card !== drag.card);
+      let targetIndex = cards.length;
+      const insertY = drag.lastY;
+      for (let index = 0; index < cards.length; index += 1) {
+        const rect = cards[index].getBoundingClientRect();
+        const midpoint = rect.top + rect.height / 2;
+        if (insertY < midpoint) {
+          targetIndex = index;
+          break;
+        }
+      }
+      drag.targetIndex = clampInsertIndex(targetIndex, cards.length);
+      updateRuleDragPlaceholder(drag);
+    }
+
+    function updateRuleDragTransform(drag) {
+      const deltaX = drag.lastX - drag.startX;
+      const deltaY = drag.lastY - drag.startY;
+      const absX = Math.abs(deltaX);
+      const restoreActive = absX >= drag.restoreThreshold;
+      drag.restoreActive = restoreActive;
+      drag.moved = drag.moved || Math.abs(deltaY) > 4 || absX > 4;
+      drag.card.classList.toggle("horizontal-dragging", absX > 3);
+      drag.card.classList.toggle("swipe-left", deltaX < -3);
+      drag.card.classList.toggle("swipe-right", deltaX > 3);
+      drag.card.classList.toggle("restore-active", restoreActive);
+      if (drag.hint) {
+        drag.hint.textContent = restoreActive ? RESTORE_ACTIVE_TEXT : RESTORE_HINT_TEXT;
+      }
+      if (drag.surface) {
+        drag.surface.style.transform = `translate3d(${deltaX}px, 0, 0)`;
+      }
+      drag.card.style.transform = `translate3d(0, ${deltaY}px, 0)`;
+    }
+
+    function finishRuleDrag(event) {
+      const drag = state.ruleDrag;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      completeRuleDrag(drag, drag.restoreActive, drag.started);
+      if (drag.started) event.preventDefault();
+    }
+
+    function cancelRuleDrag(event) {
+      const drag = state.ruleDrag;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      completeRuleDrag(drag, true, false);
+      event.preventDefault();
+    }
+
+    function completeRuleDrag(drag, shouldRestore, shouldRender = true) {
+      clearTimeout(drag.holdTimer);
+      drag.handle.removeEventListener("pointermove", onRuleDragMove);
+      drag.handle.removeEventListener("pointerup", finishRuleDrag);
+      drag.handle.removeEventListener("pointercancel", cancelRuleDrag);
+      drag.handle.releasePointerCapture?.(drag.pointerId);
+      clearRuleDragLayout(drag);
+      if (drag.moved || drag.started) drag.handle.dataset.dragConsumed = "1";
+      let moveIndicator = null;
+      if (shouldRender) {
+        if (shouldRestore) {
+          restoreDraggedRule(drag);
+        } else {
+          moveIndicator = commitDraggedRule(drag);
+        }
+      }
+      state.ruleDrag = null;
+      if (shouldRender) {
+        render();
+        if (moveIndicator) showDraggedRuleMoveIndicator(moveIndicator);
+      }
+    }
+
+    function commitDraggedRule(drag) {
+      const rules = getRules();
+      const current = rules.indexOf(drag.rule);
+      if (current < 0) return null;
+      rules.splice(current, 1);
+      const next = clampInsertIndex(drag.targetIndex, rules.length);
+      rules.splice(next, 0, drag.rule);
+      restoreExpandedStates(rules, drag.expandedByRule);
+      if (next !== current) scheduleAutoSave(state.mode, { immediate: true });
+      return next === current ? null : { rule: drag.rule, direction: next < current ? -1 : 1 };
+    }
+
+    function showDraggedRuleMoveIndicator(moveIndicator) {
+      const rules = getRules();
+      const index = rules.indexOf(moveIndicator.rule);
+      if (index < 0) return;
+      const card = els.rules.querySelector(`.rule[data-index="${index}"]`);
+      if (!card) return;
+      showRuleMoveIndicator(ruleMoveIndicatorRect(card), moveIndicator.direction);
+    }
+
+    function restoreDraggedRule(drag) {
+      const rules = getRules();
+      const current = rules.indexOf(drag.rule);
+      if (current >= 0) rules.splice(current, 1);
+      rules.splice(clampInsertIndex(drag.startIndex, rules.length), 0, drag.rule);
+      restoreExpandedStates(rules, drag.expandedByRule);
+    }
+
+    function createRuleDragPlaceholder(drag) {
+      if (drag.placeholder || !els.rules) return;
+      const containerRect = els.rules.getBoundingClientRect();
+      const bounds = drag.card.getBoundingClientRect();
+      drag.width = Math.max(1, bounds.width);
+      drag.height = Math.max(1, bounds.height);
+      const placeholder = document.createElement("div");
+      placeholder.className = "rule-drag-placeholder";
+      placeholder.setAttribute("aria-hidden", "true");
+      placeholder.style.height = `${drag.height}px`;
+      drag.placeholder = placeholder;
+      els.rules.insertBefore(placeholder, drag.card);
+      drag.card.style.position = "absolute";
+      drag.card.style.left = `${bounds.left - containerRect.left}px`;
+      drag.card.style.top = `${bounds.top - containerRect.top}px`;
+      drag.card.style.width = `${drag.width}px`;
+    }
+
+    function updateRuleDragPlaceholder(drag) {
+      if (!drag.placeholder || !els.rules) return;
+      const cards = Array.from(els.rules.querySelectorAll(".rule")).filter((card) => card !== drag.card);
+      const before = cards[clampInsertIndex(drag.targetIndex, cards.length)] || null;
+      if (before) {
+        els.rules.insertBefore(drag.placeholder, before);
+      } else {
+        els.rules.appendChild(drag.placeholder);
+      }
+    }
+
+    function clearRuleDragLayout(drag) {
+      if (!drag || !els.rules) return;
+      if (drag.placeholder) {
+        drag.placeholder.remove();
+        drag.placeholder = null;
+      }
+      if (drag.card) {
+        drag.card.classList.remove("dragging", "horizontal-dragging", "swipe-left", "swipe-right", "restore-active");
+        drag.card.style.position = "";
+        drag.card.style.left = "";
+        drag.card.style.top = "";
+        drag.card.style.width = "";
+        drag.card.style.transform = "";
+      }
+      if (drag.surface) drag.surface.style.transform = "";
+      if (drag.hint) drag.hint.textContent = RESTORE_HINT_TEXT;
+    }
+
+    function clampInsertIndex(index, length) {
+      return Math.max(0, Math.min(index, length));
+    }
+
+    function measureRestoreThreshold(hint, width) {
+      if (!hint) {
+        return Math.min(width * RESTORE_THRESHOLD_MAX_RATIO, RESTORE_THRESHOLD_MIN_PX + RESTORE_THRESHOLD_EXTRA_PX);
+      }
+      const style = getComputedStyle(hint);
+      const measure = document.createElement("span");
+      measure.textContent = RESTORE_HINT_TEXT;
+      measure.style.position = "absolute";
+      measure.style.visibility = "hidden";
+      measure.style.pointerEvents = "none";
+      measure.style.whiteSpace = "nowrap";
+      measure.style.font = style.font || `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+      measure.style.letterSpacing = style.letterSpacing;
+      document.body.appendChild(measure);
+      const textWidth = measure.getBoundingClientRect().width;
+      measure.remove();
+      const naturalThreshold = Math.ceil(textWidth + RESTORE_THRESHOLD_EXTRA_PX);
+      return Math.max(
+        RESTORE_THRESHOLD_MIN_PX,
+        Math.min(naturalThreshold, width * RESTORE_THRESHOLD_MAX_RATIO),
+      );
+    }
+
+    function requestDeleteRule(rule, index) {
+      const key = deleteKey(rule, index);
+      if (state.pendingDeleteKey === key) {
+        animateDeleteRule(rule, index);
+        return;
+      }
+      state.pendingDeleteKey = key;
+      render();
+    }
+
+    function animateDeleteRule(rule, index) {
+      const rules = getRules();
+      const previousPositions = captureRulePositions(rules);
+      const card = els.rules.querySelector(`.rule[data-index="${index}"]`);
+      if (!card) {
+        deleteRule(index, rule, previousPositions);
+        return;
+      }
+      if (card.classList.contains("deleting")) return;
+      clearPendingDelete();
+      card.classList.add("deleting");
+      window.setTimeout(
+        () => deleteRule(index, rule, previousPositions),
+        RULE_DELETE_ANIMATION_MS + RULE_DELETE_REFLOW_DELAY_MS,
+      );
+    }
+
+    function deleteButtonHtml(rule, index) {
+      const confirming = state.pendingDeleteKey === deleteKey(rule, index);
+      if (confirming) {
+        return `<button type="button" class="delete-rule delete-confirm" title="再次点击删除"><span class="delete-mark">删除</span></button>`;
+      }
+      return `<button type="button" class="icon danger delete-rule" title="删除">×</button>`;
+    }
+
+    function deleteKey(rule, index) {
+      return `${state.mode}:${index}:${ruleKey(rule, index)}`;
+    }
+
+    function clearPendingDelete() {
+      state.pendingDeleteKey = "";
+    }
+
+    function scheduleAutoSave(targetMode = state.mode, options = {}) {
+      if (!targetMode || !state.config) return;
+      clearTimeout(state.autoSaveTimers[targetMode]);
+      const run = () => queueAutoSave(targetMode, options);
+      if (options.immediate) {
+        run();
+        return;
+      }
+      state.autoSaveTimers[targetMode] = window.setTimeout(run, AUTO_SAVE_DELAY_MS);
+    }
+
+    function queueAutoSave(targetMode, options = {}) {
+      state.autoSavePending[targetMode] = mergeAutoSaveOptions(state.autoSavePending[targetMode], options);
+      if (state.autoSaveRunning[targetMode]) return;
+      drainAutoSaveQueue(targetMode);
+    }
+
+    async function drainAutoSaveQueue(targetMode) {
+      state.autoSaveRunning[targetMode] = true;
+      let finalToast = null;
+      try {
+        while (state.autoSavePending[targetMode]) {
+          const options = state.autoSavePending[targetMode];
+          state.autoSavePending[targetMode] = null;
+          let toast = null;
+          if (targetMode === "advanced") {
+            toast = await saveAdvancedSettings({ ...options, auto: true });
+          } else {
+            toast = await saveRulesForMode(targetMode, { ...options, auto: true });
+          }
+          if (toast === false) {
+            finalToast = null;
+          } else if (toast) {
+            finalToast = toast;
+          }
+        }
+        if (!state.autoSavePending[targetMode] && finalToast) showAutoSaveToast(finalToast);
+      } finally {
+        state.autoSaveRunning[targetMode] = false;
+        if (state.autoSavePending[targetMode]) drainAutoSaveQueue(targetMode);
+      }
+    }
+
+    function mergeAutoSaveOptions(previous, next = {}) {
+      if (!previous) return { ...next };
+      const merged = { ...previous, ...next };
+      merged.immediate = Boolean(previous.immediate || next.immediate);
+      return merged;
+    }
+
+    async function saveCurrentMode() {
+      if (state.mode === "advanced") {
+        await saveAdvancedSettings({ auto: false });
+        return;
+      }
+      await saveRulesForMode(state.mode, { auto: false });
+    }
+
+    async function saveRulesForMode(mode, options = {}) {
+      const isAuto = Boolean(options.auto);
+      const saveId = ++state.autoSaveSeqs[mode];
+      clearTimeout(state.autoSaveTimers[mode]);
+      try {
+        showToast(isAuto ? "正在自动保存..." : "正在保存...");
+        clearPendingDelete();
+        const rules = getRules(mode).map((rule) => {
+          const cloned = structuredCloneSafe(rule);
+          const nameKey = ruleNameKey(mode);
+          const fallback = firstKeyword(cloned.trigger_keywords);
+          const name = (cloned[nameKey] || cloned.name || fallback || (mode === "quickaction" ? "New QuickAction" : "New QuickCommand")).trim();
+          cloned[nameKey] = name;
+          cloned.name = name;
+          cloned.trigger_keywords = parseKeywords(cloned.trigger_keywords);
+          cloned.action = cleanClientAction(cloned.action || {});
+          return cloned;
+        });
+        const enabled = Boolean(modeConfig(mode).enabled);
+        const data = await apiPost("rules/full", {
+          mode,
+          enabled,
+          admin_only: modeAdminOnly(mode),
+          notice_template: modeNoticeTemplate(mode),
+          sync_with_quickaction_channel_scope: modeSyncWithQuickActionChannelScope(mode),
+          ssh_mode: cleanClientSshMode(modeSshMode()),
+          channel_scope: cleanClientChannelScope(modeChannelScope(mode)),
+          confirm: cleanClientConfirm(modeConfirm(mode)),
+          rules,
+        });
+        if (isAuto && saveId !== state.autoSaveSeqs[mode]) return null;
+        if (isAuto) {
+          if (!state.autoSavePending[mode]) {
+            markPersistedRulesForMode(mode);
+          }
+        } else {
+          state.config = data.config || state.config;
+          markPersistedRules();
+          render();
+        }
+        if (isAuto) return modeAutoSaveToast(mode, options);
+        showToast("已保存", "ok");
+        return null;
+      } catch (error) {
+        if (isAuto && saveId !== state.autoSaveSeqs[mode]) return null;
+        showToast(error.message || (isAuto ? "自动保存失败" : "保存失败"), "error");
+        return isAuto ? false : null;
+      }
+    }
+
+    async function saveAdvancedSettings(options = {}) {
+      const isAuto = Boolean(options.auto);
+      const silent = Boolean(options.silent);
+      const saveId = ++state.autoSaveSeqs.advanced;
+      clearTimeout(state.autoSaveTimers.advanced);
+      try {
+        if (!silent) showToast(isAuto ? "正在自动保存..." : "正在保存...");
+        clearPendingDelete();
+        const advanced = advancedSettingsFromConfig();
+        const data = await apiPost("settings/advanced", {
+          advanced_settings_enabled: Boolean(advanced.advanced_settings_enabled),
+          max_file_size_mb: normalizeFileSizeMb(advanced.max_file_size_mb),
+          quickaction_rule_confirm_enabled: false,
+          quickaction_rule_channel_scope_enabled: false,
+          quickcommand_rule_confirm_enabled: false,
+          quickcommand_rule_channel_scope_enabled: false,
+          quickaction_allowed_paths: quickactionAllowedPaths(),
+          sleep_wake: structuredCloneSafe(advanced.sleep_wake),
+        });
+        if (isAuto && saveId !== state.autoSaveSeqs.advanced) return null;
+        if (!isAuto) {
+          state.config = data.config || state.config;
+          markPersistedRules();
+          render();
+        } else if (!state.autoSavePending.advanced) {
+          state.config = data.config || state.config;
+        }
+        if (!silent) {
+          if (isAuto) return advancedAutoSaveToast(options);
+          showToast("已保存", "ok");
+        }
+        return null;
+      } catch (error) {
+        if (isAuto && saveId !== state.autoSaveSeqs.advanced) return null;
+        if (!silent) showToast(error.message || (isAuto ? "自动保存失败" : "保存失败"), "error");
+        if (silent) throw error;
+        return isAuto ? false : null;
+      }
+    }
+
+    async function saveAdvancedEnabledState(onError, enabled) {
+      const saveId = ++state.enabledSaveSeq;
+      clearTimeout(state.autoSaveTimers.advanced);
+      try {
+        showToast("正在保存启用状态...");
+        await saveAdvancedSettings({ auto: true, silent: true });
+        if (saveId !== state.enabledSaveSeq) return;
+        showStateSavedToast("启用状态", enabled);
+      } catch (error) {
+        if (saveId !== state.enabledSaveSeq) return;
+        if (typeof onError === "function") onError();
+        showToast(error.message || "启用状态保存失败", "error");
+      }
+    }
+
+    async function saveEnabledStates(onError, enabled) {
+      const saveId = ++state.enabledSaveSeq;
+      const payload = enabledStatePayload();
+      try {
+        showToast("正在保存启用状态...");
+        await apiPost("rules/enabled", payload);
+        if (saveId !== state.enabledSaveSeq) return;
+        showStateSavedToast("启用状态", enabled);
+      } catch (error) {
+        if (saveId !== state.enabledSaveSeq) return;
+        if (typeof onError === "function") onError();
+        showToast(error.message || "启用状态保存失败", "error");
+      }
+    }
+
+    function enabledStatePayload() {
+      return {
+        mode: state.mode,
+        enabled: Boolean(modeConfig().enabled),
+        rules: getRules()
+          .map((rule, index) => ({ rule, index }))
+          .filter(({ rule }) => state.persistedRules[state.mode].has(rule))
+          .map(({ rule, index }) => ({
+            index,
+            enabled: Boolean(rule.enabled),
+          })),
+      };
+    }
+
+    function clearAutoSaveTimers() {
+      Object.keys(state.autoSaveTimers).forEach((mode) => {
+        clearTimeout(state.autoSaveTimers[mode]);
+      });
+      state.autoSaveTimers = {};
+      state.autoSavePending = { quickaction: null, quickcommand: null, advanced: null };
+    }
+
+    function commitPendingInputs() {
+      [...state.commitPendingInputs].forEach((commit) => commit());
+    }
+
+    function rerenderModeSettingsSoon() {
+      requestAnimationFrame(renderModeSettings);
+    }
+
+    function markPersistedRules() {
+      state.persistedRules = { quickaction: new WeakSet(), quickcommand: new WeakSet() };
+      ["quickaction", "quickcommand"].forEach((mode) => {
+        markPersistedRulesForMode(mode);
+      });
+    }
+
+    function markPersistedRulesForMode(mode) {
+      state.persistedRules[mode] = new WeakSet();
+      const rules = state.config && state.config[mode] && Array.isArray(state.config[mode].rules)
+        ? state.config[mode].rules
+        : [];
+      rules.forEach((rule) => {
+        if (rule && typeof rule === "object") state.persistedRules[mode].add(rule);
+      });
+    }
+
+    function cleanClientAction(action) {
+      const type = (action.type || "").trim();
+      const next = { type };
+      if (type === "run_command") {
+        next.shell = action.shell || defaultShell();
+        next.command = action.command || "";
+        next.timeout = Math.max(1, Number(action.timeout) || 10);
+      }
+      if (["screenshot_window", "list_windows", "close_process"].includes(type)) next.selector = action.selector || {};
+      if (["read_file", "tail_file", "send_file"].includes(type)) next.path = action.path || "";
+      if (type === "tail_file") next.lines = Math.max(1, Number(action.lines) || 100);
+      if (type === "list_windows") next.limit = Math.max(1, Number(action.limit) || 20);
+      if (type === "close_process") {
+        next.force = action.force !== false;
+        next.include_children = action.include_children !== false;
+      }
+      return next;
+    }
+
+    function cleanClientConfirm(confirm) {
+      const current = isObject(confirm) ? confirm : {};
+      return {
+        enabled: Boolean(current.enabled),
+        confirm_text: String(current.confirm_text ?? "确认").trim() || "确认",
+        timeout_seconds: Math.max(1, Number(current.timeout_seconds) || 30),
+      };
+    }
+
+    function cleanClientSshMode(sshMode) {
+      const current = isObject(sshMode) ? sshMode : {};
+      return {
+        enabled: Boolean(current.enabled),
+        trigger_keywords: parseKeywords(current.trigger_keywords),
+        exit_keywords: parseKeywords(current.exit_keywords),
+        match_mode: cleanMatchMode(current.match_mode, "exact"),
+        shell: String(current.shell || defaultShell()).trim() || defaultShell(),
+        timeout: Math.max(1, Number(current.timeout) || 1000),
+      };
+    }
+
+    function cleanClientChannelScope(scope) {
+      const current = isObject(scope) ? scope : {};
+      const mode = CHANNEL_SCOPE_MODES.some(([value]) => value === current.mode) ? current.mode : "global";
+      const channelValues = channelScopeOptions(current).map(([value]) => value);
+      return {
+        mode,
+        include_channels: channelValues.filter((value) => parseKeywords(current.include_channels).includes(value)),
+        exclude_channels: channelValues.filter((value) => parseKeywords(current.exclude_channels).includes(value)),
+        platform_names: parseKeywords(current.platform_names),
+      };
+    }
+
+    function channelScopeOptions(scope = {}) {
+      const options = [];
+      const seen = new Set();
+      const addOption = (value, label) => {
+        const normalized = normalizeChannelValue(value);
+        if (!normalized || seen.has(normalized)) return;
+        seen.add(normalized);
+        options.push([normalized, label || normalized]);
+      };
+      const source = state.platformScope && Array.isArray(state.platformScope.options)
+        ? state.platformScope.options
+        : FALLBACK_CHANNEL_SCOPE_CHANNELS.map(([value, label]) => ({ value, label }));
+      source.forEach((item) => addOption(item.value, item.label));
+      parseKeywords(scope.include_channels).forEach((value) => addOption(value, legacyChannelLabel(value)));
+      parseKeywords(scope.exclude_channels).forEach((value) => addOption(value, legacyChannelLabel(value)));
+      return options;
+    }
+
+    function normalizeChannelValue(value) {
+      return String(value || "").trim().toLowerCase().replace(/-/g, "_");
+    }
+
+    function legacyChannelLabel(value) {
+      const labels = {
+        qq: "QQ",
+        web: "网页",
+        client: "客户端",
+        other: "其他",
+      };
+      const normalized = normalizeChannelValue(value);
+      return labels[normalized] || normalized;
+    }
+
+    function mergePlatformScopeOptions(platformScope) {
+      if (!isObject(platformScope) || !Array.isArray(platformScope.options)) return 0;
+      const current = state.platformScope && Array.isArray(state.platformScope.options)
+        ? state.platformScope
+        : { options: [] };
+      const mergedOptions = [];
+      const seenValues = new Set();
+      const addOption = (item) => {
+        if (!isObject(item)) return false;
+        const value = normalizeChannelValue(item.value);
+        if (!value || seenValues.has(value)) return false;
+        seenValues.add(value);
+        mergedOptions.push({ ...item, value, label: item.label || value });
+        return true;
+      };
+      current.options.forEach(addOption);
+      let added = 0;
+      platformScope.options.forEach((item) => {
+        if (addOption(item)) added += 1;
+      });
+      state.platformScope = {
+        ...platformScope,
+        ...current,
+        options: mergedOptions,
+        channels: mergedOptions,
+        active_channels: parseKeywords(platformScope.active_channels),
+        log_paths: Array.isArray(platformScope.log_paths) ? platformScope.log_paths : current.log_paths,
+      };
+      return added;
+    }
+
+    function applyInitialChannelScopeDefaults(defaults) {
+      if (!isObject(defaults) || !isObject(defaults.apply_modes)) return;
+      const activeChannels = parseKeywords(defaults.active_channels);
+      ["quickaction", "quickcommand"].forEach((mode) => {
+        if (!defaults.apply_modes[mode]) return;
+        const conf = modeConfig(mode);
+        conf.channel_scope = cleanClientChannelScope({
+          mode: defaults.mode || "include",
+          include_channels: activeChannels,
+          exclude_channels: [],
+          platform_names: [],
+        });
+      });
+      if (modeConfig("quickcommand").sync_with_quickaction_channel_scope) {
+        modeConfig("quickcommand").channel_scope = structuredCloneSafe(modeChannelScope("quickaction"));
+      }
+    }
+
+    function applyLogChannelScope(scope, platformScope) {
+      const activeChannels = parseKeywords(isObject(platformScope) ? platformScope.active_channels : []);
+      if (!activeChannels.length) return 0;
+      scope.mode = "include";
+      const key = "include_channels";
+      const channelOptions = channelScopeOptions(scope).map(([value]) => value);
+      const selected = new Set(parseKeywords(scope[key]));
+      let added = 0;
+      activeChannels.forEach((value) => {
+        const normalized = normalizeChannelValue(value);
+        if (!normalized || selected.has(normalized)) return;
+        selected.add(normalized);
+        added += 1;
+      });
+      scope[key] = [
+        ...channelOptions.filter((value) => selected.has(value)),
+        ...[...selected].filter((value) => !channelOptions.includes(value)),
+      ];
+      scope.exclude_channels = parseKeywords(scope.exclude_channels);
+      scope.platform_names = parseKeywords(scope.platform_names);
+      return added;
+    }
+
+    function snapshotChannelScope(scope) {
+      return structuredCloneSafe(cleanClientChannelScope(scope));
+    }
+
+    function restoreChannelScopeFromUndo(scope, mode) {
+      const snapshot = state.channelScopeUndo[mode];
+      if (!snapshot) return;
+      const restored = cleanClientChannelScope(snapshot);
+      scope.mode = restored.mode;
+      scope.include_channels = restored.include_channels;
+      scope.exclude_channels = restored.exclude_channels;
+      scope.platform_names = restored.platform_names;
+      clearChannelScopeUndo(mode);
+    }
+
+    function clearChannelScopeUndo(mode) {
+      delete state.channelScopeUndo[mode];
+    }
+
+    function selectAllChannelScope(scope) {
+      scope.mode = "include";
+      scope.include_channels = channelScopeOptions(scope).map(([value]) => value);
+      scope.exclude_channels = parseKeywords(scope.exclude_channels);
+      scope.platform_names = parseKeywords(scope.platform_names);
+    }
+
+    function clearChannelScope(scope) {
+      if (scope.mode !== "include" && scope.mode !== "exclude") scope.mode = "include";
+      scope.include_channels = [];
+      scope.exclude_channels = [];
+      scope.platform_names = parseKeywords(scope.platform_names);
+    }
+
+    function channelScopeHasSelectableMode(scope) {
+      return scope.mode === "include" || scope.mode === "exclude";
+    }
+
+    function modeConfig(mode = state.mode) {
+      state.config[mode] = state.config[mode] || {};
+      state.config[mode].rules = Array.isArray(state.config[mode].rules) ? state.config[mode].rules : [];
+      return state.config[mode];
+    }
+
+    function modeNoticeTemplate(mode = state.mode) {
+      const conf = modeConfig(mode);
+      if (Object.prototype.hasOwnProperty.call(conf, "notice_template")) {
+        return conf.notice_template ?? "";
+      }
+      return DEFAULT_NOTICE_TEMPLATES[mode] || "";
+    }
+
+    function modeConfirm(mode = state.mode) {
+      const conf = modeConfig(mode);
+      conf.confirm = cleanClientConfirm(conf.confirm);
+      return conf.confirm;
+    }
+
+    function modeAdminOnly(mode = state.mode) {
+      const conf = modeConfig(mode);
+      conf.admin_only = Boolean("admin_only" in conf ? conf.admin_only : true);
+      return conf.admin_only;
+    }
+
+    function modeSyncWithQuickActionChannelScope(mode = state.mode) {
+      if (mode !== "quickcommand") return Boolean(modeConfig(mode).sync_with_quickaction_channel_scope);
+      const conf = modeConfig(mode);
+      if (!Object.prototype.hasOwnProperty.call(conf, "sync_with_quickaction_channel_scope")) {
+        conf.sync_with_quickaction_channel_scope = true;
+        conf.channel_scope = structuredCloneSafe(modeChannelScope("quickaction"));
+      }
+      return Boolean(conf.sync_with_quickaction_channel_scope);
+    }
+
+    function modeSshMode() {
+      const conf = modeConfig("quickcommand");
+      if (!isObject(conf.ssh_mode)) conf.ssh_mode = {};
+      const sshMode = conf.ssh_mode;
+      sshMode.enabled = Boolean(sshMode.enabled);
+      sshMode.trigger_keywords = parseKeywords(sshMode.trigger_keywords);
+      if (!sshMode.trigger_keywords.length) sshMode.trigger_keywords = ["ssh"];
+      sshMode.exit_keywords = parseKeywords(sshMode.exit_keywords);
+      if (!sshMode.exit_keywords.length) sshMode.exit_keywords = ["exit", "退出"];
+      sshMode.match_mode = cleanMatchMode(sshMode.match_mode, "exact");
+      sshMode.shell = String(sshMode.shell || defaultShell()).trim() || defaultShell();
+      sshMode.timeout = Math.max(1, Number(sshMode.timeout) || 1000);
+      return sshMode;
+    }
+
+    function modeChannelScope(mode = state.mode) {
+      const conf = modeConfig(mode);
+      conf.channel_scope = cleanClientChannelScope(conf.channel_scope);
+      return conf.channel_scope;
+    }
+
+    function quickactionAllowedPaths(value) {
+      const conf = modeConfig("quickaction");
+      if (arguments.length) {
+        conf.allowed_paths = parseKeywords(value);
+      } else {
+        conf.allowed_paths = parseKeywords(conf.allowed_paths);
+      }
+      return conf.allowed_paths;
+    }
+
+    function quickactionAllowedPathsText() {
+      return quickactionAllowedPaths().join("\n");
+    }
+
+    function advancedSettingsFromConfig() {
+      state.config = state.config || {};
+      const nested = isObject(state.config.advanced_settings) ? state.config.advanced_settings : {};
+      const defaults = {
+        enabled: true,
+        sleep_match_mode: "exact",
+        sleep_keywords: ["休眠"],
+        permanent_sleep_keywords: ["永久休眠"],
+        wake_keywords: ["唤醒"],
+        wake_all_keywords: ["全部唤醒", "唤醒全部"],
+        status_keywords: ["休眠状态"],
+        default_sleep_seconds: 3600,
+        persist_sleep_state: true,
+        allow_global_sleep: true,
+        allow_mode_sleep: false,
+        allow_rule_sleep: false,
+        admin_only: true,
+      };
+      state.config.advanced_settings_enabled = Boolean(
+        "advanced_settings_enabled" in state.config
+          ? state.config.advanced_settings_enabled
+          : nested.enabled
+      );
+      const hasFlatFileSize = Object.prototype.hasOwnProperty.call(state.config, "max_file_size_mb");
+      const hasNestedFileSize = Object.prototype.hasOwnProperty.call(nested, "max_file_size_mb");
+      state.config.max_file_size_mb = normalizeFileSizeMb(
+        hasFlatFileSize
+          ? state.config.max_file_size_mb
+          : (hasNestedFileSize ? nested.max_file_size_mb : 50)
+      );
+      [
+        "quickaction_rule_confirm_enabled",
+        "quickaction_rule_channel_scope_enabled",
+        "quickcommand_rule_confirm_enabled",
+        "quickcommand_rule_channel_scope_enabled",
+      ].forEach((key) => {
+        state.config[key] = false;
+      });
+      const sleepSource = isObject(state.config.sleep_wake)
+        ? state.config.sleep_wake
+        : (isObject(nested.sleep_wake) ? nested.sleep_wake : {});
+      state.config.sleep_wake = {
+        ...defaults,
+        ...sleepSource,
+        sleep_match_mode: cleanMatchMode(sleepSource.sleep_match_mode ?? defaults.sleep_match_mode, "exact"),
+        sleep_keywords: parseKeywords(sleepSource.sleep_keywords ?? defaults.sleep_keywords),
+        permanent_sleep_keywords: parseKeywords(sleepSource.permanent_sleep_keywords ?? defaults.permanent_sleep_keywords),
+        wake_keywords: parseKeywords(sleepSource.wake_keywords ?? defaults.wake_keywords),
+        wake_all_keywords: parseKeywords(sleepSource.wake_all_keywords ?? defaults.wake_all_keywords),
+        status_keywords: parseKeywords(sleepSource.status_keywords ?? defaults.status_keywords),
+        default_sleep_seconds: Math.max(1, Number(sleepSource.default_sleep_seconds ?? defaults.default_sleep_seconds) || defaults.default_sleep_seconds),
+        enabled: Boolean("enabled" in sleepSource ? sleepSource.enabled : defaults.enabled),
+        persist_sleep_state: true,
+        allow_global_sleep: true,
+        allow_mode_sleep: false,
+        allow_rule_sleep: false,
+        admin_only: Boolean("admin_only" in sleepSource ? sleepSource.admin_only : defaults.admin_only),
+      };
+      return state.config;
+    }
+
+    function cleanMatchMode(value, fallback = "contains") {
+      const mode = String(value || fallback).trim().toLowerCase();
+      return ["contains", "exact", "prefix", "regex"].includes(mode) ? mode : fallback;
+    }
+
+    function normalizeFileSizeMb(value) {
+      if (value === null || value === undefined) return null;
+      const text = String(value).trim();
+      if (!text || text === "-") return null;
+      const number = Number(text);
+      if (!Number.isFinite(number)) return null;
+      if (number < 0) return null;
+      return number;
+    }
+
+    function fileSizeToMb(value, unit) {
+      const text = String(value ?? "").trim();
+      if (!text || text === "-") return null;
+      const amount = Number(text);
+      if (!Number.isFinite(amount) || amount < 0) return null;
+      if (unit === "KB") return amount / 1024;
+      if (unit === "GB") return amount * 1024;
+      return amount;
+    }
+
+    function fileSizeFromMb(value) {
+      const mb = normalizeFileSizeMb(value);
+      if (mb === null) return { value: "", unit: "MB" };
+      if (mb === 0) return { value: 0, unit: "MB" };
+      if (mb >= 1024 && Number.isInteger(mb / 1024)) {
+        return { value: mb / 1024, unit: "GB" };
+      }
+      if (mb < 1 || !Number.isInteger(mb)) {
+        return { value: Math.max(1, Math.round(mb * 1024)), unit: "KB" };
+      }
+      return { value: mb, unit: "MB" };
+    }
+
+    function getRules(mode = state.mode) {
+      return modeConfig(mode).rules;
+    }
+
+    function ruleNameKey(mode = state.mode) {
+      return mode === "quickcommand" ? "command_name" : "action_name";
+    }
+
+    function displayName(rule, mode = state.mode) {
+      const name = rule[ruleNameKey(mode)] || rule.name || firstKeyword(rule.trigger_keywords);
+      return name || (mode === "quickcommand" ? "New QuickCommand" : "New QuickAction");
+    }
+
+    function ensureAction(rule) {
+      if (!rule.action || typeof rule.action !== "object") {
+        rule.action = { type: state.mode === "quickcommand" ? "run_command" : "" };
+      }
+      applyActionDefaults(rule.action);
+      return rule.action;
+    }
+
+    function applyActionDefaults(action) {
+      if (state.mode === "quickcommand") {
+        action.type = "run_command";
+        action.shell = action.shell || defaultShell();
+        action.command = action.command || "";
+        action.timeout = Math.max(1, Number(action.timeout) || 10);
+        delete action.command_id;
+      }
+      if (["screenshot_window", "list_windows", "close_process"].includes(action.type) && !isObject(action.selector)) action.selector = {};
+      if (action.type === "tail_file" && !action.lines) action.lines = 100;
+      if (action.type === "list_windows" && !action.limit) action.limit = 20;
+      if (action.type === "close_process") {
+        if (typeof action.force !== "boolean") action.force = true;
+        if (typeof action.include_children !== "boolean") action.include_children = true;
+      }
+    }
+
+    function openTypeModal() {
+      els.typeModal.classList.add("open");
+    }
+
+    function closeTypeModal() {
+      els.typeModal.classList.remove("open");
+    }
+
+    function renderTypeModal() {
+      els.typeList.innerHTML = "";
+      TYPE_DEFS.forEach(([value, label, desc]) => {
+        const item = document.createElement("div");
+        item.className = "type-card";
+        item.innerHTML = `<h3>${escapeHtml(value)} - ${escapeHtml(label)}</h3><div>${escapeHtml(desc)}</div>`;
+        els.typeList.appendChild(item);
+      });
+    }
+
+    function closeAllTypeMenus() {
+      document.querySelectorAll(".type-menu.open").forEach((menu) => menu.classList.remove("open"));
+      document.querySelectorAll(".type-menu-portal").forEach((menu) => menu.remove());
+    }
+
+    function apiGet(endpoint, params) {
+      if (window.AstrBotPluginPage) return window.AstrBotPluginPage.apiGet(endpoint, params);
+      throw new Error("缺少 AstrBot 插件页面桥接。");
+    }
+
+    function apiPost(endpoint, body) {
+      if (window.AstrBotPluginPage) return window.AstrBotPluginPage.apiPost(endpoint, body);
+      throw new Error("缺少 AstrBot 插件页面桥接。");
+    }
+
+    function parseKeywords(value) {
+      if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
+      return String(value || "")
+        .replace(/[，、;；,]/g, "\n")
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function keywordsText(value) {
+      return parseKeywords(value).join("\n");
+    }
+
+    function firstKeyword(value) {
+      return parseKeywords(value)[0] || "";
+    }
+
+    function ruleKey(rule, index) {
+      return `${index}:${displayName(rule)}:${(rule.action && rule.action.type) || ""}`;
+    }
+
+    function isExpanded(key, index) {
+      const values = state.expanded[state.mode] || {};
+      return values[key] ?? values[String(index)] ?? false;
+    }
+
+    function setExpanded(key, index, value) {
+      state.expanded[state.mode] = state.expanded[state.mode] || {};
+      state.expanded[state.mode][key] = value;
+      state.expanded[state.mode][String(index)] = value;
+      saveExpanded();
+    }
+
+    function captureExpandedStates(rules) {
+      return new Map(rules.map((rule, index) => [rule, isRuleExpanded(rule, index)]));
+    }
+
+    function restoreExpandedStates(rules, expandedByRule) {
+      const values = {};
+      rules.forEach((rule, index) => {
+        const expanded = expandedByRule.get(rule) || false;
+        values[ruleKey(rule, index)] = expanded;
+        values[String(index)] = expanded;
+      });
+      state.expanded[state.mode] = values;
+      saveExpanded();
+    }
+
+    function isRuleExpanded(rule, index) {
+      return isExpanded(ruleKey(rule, index), index);
+    }
+
+    function loadExpanded() {
+      try {
+        const value = localStorage.getItem(STORE_KEY);
+        return value ? JSON.parse(value) : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveExpanded() {
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(state.expanded));
+      } catch {
+        // Sandboxed plugin pages may block storage; UI updates must still render.
+      }
+    }
+
+    function notifyLayoutChanged() {
+      requestAnimationFrame(() => {
+        window.dispatchEvent(new Event("resize"));
+      });
+    }
+
+    function scrollRuleIntoView(index) {
+      requestAnimationFrame(() => {
+        const rule = els.rules.querySelector(`.rule[data-index="${index}"]`);
+        if (rule) rule.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    }
+
+    function showToast(message, type = "") {
+      els.toast.textContent = message || "";
+      els.toast.className = `toast ${type}`;
+    }
+
+    function showStateSavedToast(label, enabled) {
+      els.toast.textContent = "";
+      els.toast.className = "toast ok";
+      els.toast.append(`${label}：`);
+      const stateText = document.createElement("span");
+      stateText.className = `toast-state ${enabled ? "on" : "off"}`;
+      stateText.textContent = enabled ? "开" : "关";
+      els.toast.append(stateText, " 已保存");
+    }
+
+    function showAutoSaveToast(toast) {
+      if (!toast) return;
+      if (toast.kind === "modeState") {
+        showModeStateSavedToast(toast.mode, toast.label, toast.enabled, toast.currentState);
+        return;
+      }
+      if (toast.kind === "advancedState") {
+        showAdvancedStateSavedToast(toast.label, toast.enabled, toast.currentState);
+        return;
+      }
+      showToast(toast.message || "自动保存成功", "ok");
+    }
+
+    function modeAutoSaveToast(mode, options = {}) {
+      if (Object.prototype.hasOwnProperty.call(options, "confirmState")) {
+        return { kind: "modeState", mode, label: "二次确认", enabled: Boolean(options.confirmState), currentState: () => Boolean(options.confirmState) };
+      }
+      if (Object.prototype.hasOwnProperty.call(options, "stateLabel")) {
+        return { kind: "modeState", mode, label: options.stateLabel, enabled: Boolean(options.enabledState) };
+      }
+      return { kind: "message", message: "自动保存成功" };
+    }
+
+    function advancedAutoSaveToast(options = {}) {
+      if (Object.prototype.hasOwnProperty.call(options, "stateLabel")) {
+        return { kind: "advancedState", label: options.stateLabel, enabled: Boolean(options.enabledState), currentState: () => Boolean(options.enabledState) };
+      }
+      return { kind: "message", message: "自动保存成功" };
+    }
+
+    function showModeStateSavedToast(mode, label, enabled, currentState = null) {
+      const current = typeof currentState === "function" ? currentState() : modeStateValue(mode, label);
+      if (typeof current === "boolean" && current !== enabled) {
+        showStateSavedToast(label, current);
+        return;
+      }
+      showStateSavedToast(label, enabled);
+    }
+
+    function showAdvancedStateSavedToast(label, enabled, currentState = null) {
+      const current = typeof currentState === "function" ? currentState() : advancedStateValue(label);
+      if (typeof current === "boolean" && current !== enabled) {
+        showStateSavedToast(label, current);
+        return;
+      }
+      showStateSavedToast(label, enabled);
+    }
+
+    function modeStateValue(mode, label) {
+      if (label === "仅管理员可用") return modeAdminOnly(mode);
+      if (label === "与 QuickAction 渠道范围保持一致") return modeSyncWithQuickActionChannelScope(mode);
+      return null;
+    }
+
+    function advancedStateValue(label) {
+      const advanced = advancedSettingsFromConfig();
+      if (label === "启用休眠/唤醒控制") return Boolean(advanced.sleep_wake.enabled);
+      if (label === "仅管理员可控制休眠/唤醒") return Boolean(advanced.sleep_wake.admin_only);
+      return null;
+    }
+
+    function switchSaveOptions(label, enabled) {
+      return { immediate: true, stateLabel: label, enabledState: enabled };
+    }
+
+    function isObject(value) {
+      return value && typeof value === "object" && !Array.isArray(value);
+    }
+
+    function structuredCloneSafe(value) {
+      if (typeof structuredClone === "function") return structuredClone(value);
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function fuzzyMatch(text, query) {
+      if (text.includes(query)) return true;
+      let cursor = 0;
+      for (const char of query) {
+        cursor = text.indexOf(char, cursor);
+        if (cursor < 0) return false;
+        cursor += 1;
+      }
+      return true;
+    }
+
+    function shorten(value, max) {
+      const text = String(value || "");
+      return text.length > max ? `${text.slice(0, max - 1)}...` : text;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+  </script>
+</body>
+</html>

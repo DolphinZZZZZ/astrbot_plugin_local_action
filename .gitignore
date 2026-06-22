@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.localaction_tmp/
+.local_action_tmp/
+data/
+output/

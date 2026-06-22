@@ -1,0 +1,11 @@
+name: astrbot_plugin_local_action
+display_name: LocalAction 本地快捷指令
+desc: 命中关键词后执行本地动作或命令。
+author: Codex
+version: 0.2.0
+repo: ""
+keywords:
+  - local action
+  - screenshot
+  - quick command
+  - no llm
