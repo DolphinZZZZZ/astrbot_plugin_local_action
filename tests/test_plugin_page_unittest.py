@@ -4,8 +4,8 @@ import yaml
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-PLUGIN_ROOT = PROJECT_ROOT / "astrbot_plugin_local_action"
-METADATA_YAML = PROJECT_ROOT / "astrbot_plugin_local_action" / "metadata.yaml"
+PLUGIN_ROOT = PROJECT_ROOT
+METADATA_YAML = PROJECT_ROOT / "metadata.yaml"
 
 
 class PluginPageTests(unittest.TestCase):

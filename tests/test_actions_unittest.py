@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+import plugin_test_bootstrap  # noqa: F401
 import astrbot_plugin_local_action.actions as actions_mod
 from astrbot_plugin_local_action.actions import (
     ActionError,

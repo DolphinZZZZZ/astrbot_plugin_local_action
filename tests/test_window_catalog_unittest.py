@@ -1,5 +1,6 @@
 import unittest
 
+import plugin_test_bootstrap  # noqa: F401
 from astrbot_plugin_local_action.window_catalog import (
     LocalWindowManager,
     WindowInfo,

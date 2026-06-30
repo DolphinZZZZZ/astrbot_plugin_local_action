@@ -2,6 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import plugin_test_bootstrap  # noqa: F401
 from astrbot_plugin_local_action.platform_logs import (
     extract_active_platforms,
     get_platform_scope_info,

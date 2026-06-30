@@ -9,6 +9,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+import plugin_test_bootstrap  # noqa: F401
+
 
 def install_astrbot_stubs():
     astrbot_mod = types.ModuleType("astrbot")
